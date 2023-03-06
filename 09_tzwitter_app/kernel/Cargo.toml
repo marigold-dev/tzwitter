@@ -1,5 +1,5 @@
 [package]
-name = "kernel"
+name = "tzwitter-kernel"
 version = "0.1.0"
 edition = "2021"
 
@@ -13,3 +13,6 @@ debug = { git = "https://gitlab.com/tezos/kernel/" }
 kernel = {git = "https://gitlab.com/tezos/kernel/"}
 mock_runtime = { git = "https://gitlab.com/tezos/kernel/" }
 mock_host = { git = "https://gitlab.com/tezos/kernel/" }
+
+# To hash everything
+crypto = { git = "https://github.com/trilitech/tezedge.git", branch = "master", default-features = false }

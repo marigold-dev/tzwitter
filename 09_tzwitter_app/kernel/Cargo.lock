@@ -344,17 +344,6 @@ checksum = "453ad9f582a441959e5f0d088b02ce04cfe8d51a8eaf077f12ac6d3e94164ca6"
 [[package]]
 name = "kernel"
 version = "0.1.0"
-dependencies = [
- "debug",
- "host",
- "kernel 0.1.0 (git+https://gitlab.com/tezos/kernel/)",
- "mock_host",
- "mock_runtime",
-]
-
-[[package]]
-name = "kernel"
-version = "0.1.0"
 source = "git+https://gitlab.com/tezos/kernel/#454e3016ea12565af37c00ee4723ad1d0505af08"
 dependencies = [
  "debug",
@@ -446,7 +435,7 @@ source = "git+https://gitlab.com/tezos/kernel/#454e3016ea12565af37c00ee4723ad1d0
 dependencies = [
  "debug",
  "host",
- "kernel 0.1.0 (git+https://gitlab.com/tezos/kernel/)",
+ "kernel",
  "mock_runtime",
 ]
 
@@ -891,6 +880,18 @@ name = "typenum"
 version = "1.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "497961ef93d974e23eb6f433eb5fe1b7930b659f06d12dec6fc44a8f554c0bba"
+
+[[package]]
+name = "tzwitter-kernel"
+version = "0.1.0"
+dependencies = [
+ "crypto",
+ "debug",
+ "host",
+ "kernel",
+ "mock_host",
+ "mock_runtime",
+]
 
 [[package]]
 name = "unicode-ident"
