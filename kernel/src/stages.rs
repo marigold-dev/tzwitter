@@ -1,4 +1,4 @@
-use crate::constants::MAGIC_BYTE;
+use crate::{constants::MAGIC_BYTE, message::Tweet};
 use host::{
     rollup_core::{RawRollupCore, MAX_INPUT_MESSAGE_SIZE},
     runtime::Runtime,
@@ -27,7 +27,8 @@ fn aux_stage_one<Host: RawRollupCore + Runtime>(
                     match str {
                         Err(_) => aux_stage_one(host, inbox),
                         Ok(string) => {
-                            let msg = Message::Tweet(string);
+                            let tweet = Tweet(string);
+                            let msg = Message::Tweet(tweet);
                             inbox.push(msg);
                             aux_stage_one(host, inbox)
                         }
