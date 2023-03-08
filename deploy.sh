@@ -11,7 +11,7 @@ rm -rf rollup
 
 # Copy the kernel in the rollup directory
 mkdir -p rollup
-cp kernel/target/wasm32-unknown-unknown/release/kernel.wasm ./rollup
+cp kernel/target/wasm32-unknown-unknown/release/tzwitter_kernel.wasm ./rollup/kernel.wasm
 
 # Installing the kernel
 wasm-strip ./rollup/kernel.wasm
@@ -22,6 +22,7 @@ KERNEL=$(xxd -ps -c 0 rollup/kernel.wasm | tr -d '\n')
 # Setup the DAC
 mkdir -p rollup/wasm_2_0_0
 mkdir -p /tmp/dac
+octez-dac-node configure as legacy with threshold 0 and data availability committee members --data-dir /tmp/dac --reveal-data-dir $PWD/rollup/wasm_2_0_0
 echo "{ \"reveal_data_dir\": \"$PWD/rollup/wasm_2_0_0\", \"mode\": { \"legacy\": true } }" > /tmp/dac/config.json
 
 # Run the DAC
