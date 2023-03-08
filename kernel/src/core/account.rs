@@ -1,5 +1,3 @@
-use serde::Serialize;
-
 use crate::core::nonce::Nonce;
 
 use super::public_key_hash::PublicKeyHash;
