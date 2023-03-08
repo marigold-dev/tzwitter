@@ -1,7 +1,9 @@
 use crate::core::hash::Blake2b;
 use crate::core::public_key::PublicKey;
 use crypto::hash::Ed25519Signature;
+use serde::Deserialize;
 
+#[derive(Deserialize)]
 pub enum Signature {
     Ed25519(Ed25519Signature),
 }

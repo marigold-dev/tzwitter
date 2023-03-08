@@ -1,5 +1,7 @@
 use crypto::hash::PublicKeyEd25519;
+use serde::Deserialize;
 
+#[derive(Deserialize)]
 pub enum PublicKey {
     Ed25519(PublicKeyEd25519),
 }
