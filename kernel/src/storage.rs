@@ -73,18 +73,26 @@ fn store_nonce<'a, Host: RawRollupCore + Runtime>(
 /// Read the account of the user
 pub fn read_account<Host: RawRollupCore + Runtime>(
     host: &mut Host,
-    public_key_hash: &PublicKeyHash,
+    public_key_hash: PublicKeyHash,
 ) -> Result<Account> {
-    let nonce = read_nonce(host, public_key_hash)?;
-    Ok(Account { nonce })
+    let nonce = read_nonce(host, &public_key_hash)?;
+    Ok(Account {
+        public_key_hash,
+        nonce,
+    })
 }
 
+/// Store an account to the location /account/{tz...}
+///
+/// Only the nonce is stored
 pub fn store_account<'a, Host: RawRollupCore + Runtime>(
     host: &mut Host,
-    public_key_hash: &PublicKeyHash,
     account: &'a Account,
 ) -> Result<&'a Account> {
-    let Account { nonce } = account;
+    let Account {
+        nonce,
+        public_key_hash,
+    } = account;
     let _ = store_nonce(host, public_key_hash, nonce)?;
     Ok(account)
 }
