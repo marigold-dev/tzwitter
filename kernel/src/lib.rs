@@ -8,7 +8,7 @@ mod stages;
 mod storage;
 
 use crate::core::error::*;
-use stages::read_input;
+use stages::{read_input, verify_signature};
 
 /// A step is processing only one message from the inbox
 ///
@@ -18,8 +18,11 @@ use stages::read_input;
 /// - interpret the message
 /// - save the result to the durable state
 fn step<Host: RawRollupCore>(host: &mut Host) -> Result<()> {
-    let _message = read_input(host)?;
-    host.write_debug("Processing message");
+    host.write_debug("Processing message\n");
+    let message = read_input(host)?;
+    host.write_debug("Message is deserialized\n");
+    let _inner = verify_signature(message)?;
+    host.write_debug("Signature is correct\n");
     Ok(())
 }
 
@@ -35,6 +38,8 @@ fn execute<Host: RawRollupCore>(host: &mut Host) -> Result<()> {
         Err(Error::EndOfInbox) => Ok(()),
         Err(Error::NotATzwitterMessage) => execute(host),
         Err(Error::Runtime) => Err(Error::Runtime),
+        Err(Error::Ed25519Compact(_)) => execute(host),
+        Err(Error::InvalidSignature) => execute(host),
     }
 }
 

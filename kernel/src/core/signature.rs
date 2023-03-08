@@ -1,3 +1,4 @@
+use crate::core::error::*;
 use crate::core::hash::Blake2b;
 use crate::core::public_key::PublicKey;
 use crypto::hash::Ed25519Signature;
@@ -15,7 +16,7 @@ impl Signature {
         }
     }
 
-    pub fn from_b58(data: &str) -> Result<Self, &'static str> {
+    pub fn from_b58(data: &str) -> std::result::Result<Self, &'static str> {
         let ed25519 = Ed25519Signature::from_base58_check(data).ok();
         match ed25519 {
             Some(pkey) => Ok(Signature::Ed25519(pkey)),
@@ -23,20 +24,20 @@ impl Signature {
         }
     }
 
-    pub fn verify(&self, public_key: &PublicKey, message: &[u8]) -> Result<(), &'static str> {
+    pub fn verify(&self, public_key: &PublicKey, message: &[u8]) -> Result<()> {
         match (self, public_key) {
             (Signature::Ed25519(sig), PublicKey::Ed25519(pkey)) => {
                 // TODO: There should be another way to do it
                 // TODO: remove the unwrap
                 let data = Blake2b::from(message);
                 let data = data.as_ref();
-                let signature = ed25519_compact::Signature::from_slice(sig.as_ref())
-                    .map_err(|_| "Invalid signature, should not happen")?;
-                let pkey = ed25519_compact::PublicKey::from_slice(pkey.as_ref())
-                    .map_err(|_| "Invalid public key, should not happen")?;
+                let signature =
+                    ed25519_compact::Signature::from_slice(sig.as_ref()).map_err(Error::from)?;
+                let pkey =
+                    ed25519_compact::PublicKey::from_slice(pkey.as_ref()).map_err(Error::from)?;
 
                 pkey.verify(data, &signature)
-                    .map_err(|_| "Signature is not correct")
+                    .map_err(|_| Error::InvalidSignature)
             }
         }
     }

@@ -1,4 +1,4 @@
-use crate::constants::MAGIC_BYTE;
+use crate::{constants::MAGIC_BYTE, core::message::Inner};
 use host::{
     rollup_core::{RawRollupCore, MAX_INPUT_MESSAGE_SIZE},
     runtime::Runtime,
@@ -28,4 +28,18 @@ pub fn read_input<Host: RawRollupCore>(host: &mut Host) -> Result<Message> {
             }
         }
     }
+}
+
+/// Verify the signature of a message
+///
+/// Returns the inner message
+pub fn verify_signature(message: Message) -> Result<Inner> {
+    let signature = message.signature();
+    let pkey = message.public_key();
+    let inner = message.inner();
+    let hash = inner.hash();
+
+    let () = signature.verify(&pkey, hash.as_ref())?;
+    let Message { inner, .. } = message;
+    Ok(inner)
 }
