@@ -1,10 +1,10 @@
-use crate::{constants::MAGIC_BYTE, message::Tweet};
+use crate::constants::MAGIC_BYTE;
 use host::{
     rollup_core::{RawRollupCore, MAX_INPUT_MESSAGE_SIZE},
     runtime::Runtime,
 };
 
-use crate::message::Message;
+use crate::core::message::Message;
 
 /**
  * It will recursively read the inbox of the rollup
@@ -23,14 +23,19 @@ fn aux_stage_one<Host: RawRollupCore + Runtime>(
             match data {
                 [0x01, MAGIC_BYTE, ..] => {
                     let bytes = data.iter().skip(2).copied().collect(); // Skip first and magic byte.
-                    let str = String::from_utf8(bytes);
+                    let str = String::from_utf8(bytes); // JSON string
                     match str {
                         Err(_) => aux_stage_one(host, inbox),
                         Ok(string) => {
-                            let tweet = Tweet(string);
-                            let msg = Message::Tweet(tweet);
-                            inbox.push(msg);
-                            aux_stage_one(host, inbox)
+                            // aux_stage_one(host, inbox)
+                            let str = serde_json_wasm::from_str(&string);
+                            match str {
+                                Err(_) => aux_stage_one(host, inbox),
+                                Ok(msg) => {
+                                    inbox.push(msg);
+                                    aux_stage_one(host, inbox)
+                                }
+                            }
                         }
                     }
                 }

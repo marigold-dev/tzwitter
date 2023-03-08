@@ -17,3 +17,5 @@ mock_host = { git = "https://gitlab.com/tezos/kernel/" }
 # To hash everything
 crypto = { git = "https://github.com/trilitech/tezedge.git", branch = "master", default-features = false }
 ed25519-compact = { version ="2.0", default-features = false }
+serde = "1.0.152"
+serde-json-wasm = "0.5.0"
