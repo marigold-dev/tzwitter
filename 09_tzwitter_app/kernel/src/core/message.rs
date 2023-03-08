@@ -1,26 +1,32 @@
-use host::runtime::Runtime;
-use serde::Deserialize;
-
 use crate::core::hash::Blake2b;
+use crate::core::nonce::Nonce;
 use crate::core::public_key::PublicKey;
 use crate::core::public_key_hash::PublicKeyHash;
 use crate::core::signature::Signature;
+use serde::Deserialize;
 
 #[derive(Deserialize)]
-struct PostTweet {
+pub struct PostTweet {
     author: PublicKeyHash, // define a new type for public key
     content: String,
 }
 
 #[derive(Deserialize)]
-enum Content {
+pub enum Content {
     PostTweet(PostTweet),
 }
 
 #[derive(Deserialize)]
 pub struct Inner {
-    nonce: u64,
-    content: Content,
+    nonce: Nonce,
+    pub content: Content,
+}
+
+impl Inner {
+    /// Returns the nonce of the inner
+    pub fn nonce(&self) -> &Nonce {
+        &self.nonce
+    }
 }
 
 #[derive(Deserialize)]
@@ -55,7 +61,7 @@ impl Inner {
         let Inner { nonce, content } = &self;
         match &content {
             Content::PostTweet(PostTweet { author, content }) => {
-                let string = format!("{:08X?}{}{}", nonce, author.to_b58(), content);
+                let string = format!("{}{}{}", nonce.to_string(), author.to_b58(), content);
                 Blake2b::from(string.as_bytes())
             }
         }
@@ -67,7 +73,7 @@ mod tests {
     use std::num::ParseIntError;
 
     use super::{Content, Inner, PostTweet};
-    use crate::core::{message::Message, public_key::PublicKey};
+    use crate::core::{message::Message, nonce::Nonce, public_key::PublicKey};
 
     #[test]
     fn test_hash() {
@@ -77,7 +83,7 @@ mod tests {
             .into();
 
         let inner = Inner {
-            nonce: 1,
+            nonce: Nonce::default().next(),
             content: Content::PostTweet(PostTweet {
                 author,
                 content: "Hello world".to_string(),

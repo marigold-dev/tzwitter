@@ -1,6 +1,9 @@
+use crate::core::public_key_hash::PublicKeyHash;
+
 // src/lib.rs
 use host::{rollup_core::RawRollupCore, runtime::Runtime};
 use kernel::kernel_entry;
+use storage::{read_account, store_account};
 
 mod constants;
 mod core;
@@ -8,7 +11,7 @@ mod stages;
 mod storage;
 
 use crate::core::error::*;
-use stages::{read_input, verify_signature};
+use stages::{read_input, verify_nonce, verify_signature};
 
 /// A step is processing only one message from the inbox
 ///
@@ -20,9 +23,19 @@ use stages::{read_input, verify_signature};
 fn step<Host: RawRollupCore>(host: &mut Host) -> Result<()> {
     host.write_debug("Processing message\n");
     let message = read_input(host)?;
+    let public_key = message.public_key();
+    let public_key_hash = PublicKeyHash::from(public_key);
     host.write_debug("Message is deserialized\n");
-    let _inner = verify_signature(message)?;
+
+    let inner = verify_signature(message)?;
     host.write_debug("Signature is correct\n");
+
+    // Verify the nonce
+    let account = read_account(host, &public_key_hash)?;
+    let _content = verify_nonce(inner, account.nonce())?;
+    let account = account.increment_nonce();
+    let _ = store_account(host, &public_key_hash, &account)?;
+
     Ok(())
 }
 
@@ -37,9 +50,12 @@ fn execute<Host: RawRollupCore>(host: &mut Host) -> Result<()> {
         Err(Error::FromUtf8Error(_)) => execute(host),
         Err(Error::EndOfInbox) => Ok(()),
         Err(Error::NotATzwitterMessage) => execute(host),
-        Err(Error::Runtime) => Err(Error::Runtime),
+        Err(Error::Runtime(err)) => Err(Error::Runtime(err)),
         Err(Error::Ed25519Compact(_)) => execute(host),
         Err(Error::InvalidSignature) => execute(host),
+        Err(Error::InvalidNonce) => execute(host),
+        Err(Error::PathError(_)) => execute(host),
+        Err(Error::StateDeserializarion) => execute(host),
     }
 }
 
@@ -80,5 +96,21 @@ mod tests {
         let res = step(&mut host);
 
         assert!(res.is_ok());
+    }
+
+    #[test]
+    fn test_replay_attack() {
+        let state = HostState::default();
+        let input = valid_input();
+        let inputs = [input.as_slice(), input.as_slice()].into_iter();
+        let mut host = MockHost::from(state);
+        host.as_mut().set_ready_for_input(0);
+        host.as_mut().add_next_inputs(0, inputs);
+
+        let res1 = step(&mut host);
+        let res2 = step(&mut host);
+
+        assert!(res1.is_ok());
+        assert!(res2.is_err());
     }
 }
