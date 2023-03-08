@@ -6,48 +6,34 @@ use host::{
 
 use crate::core::message::Message;
 
-/**
- * It will recursively read the inbox of the rollup
- * Parse the messages
- */
-fn aux_stage_one<Host: RawRollupCore + Runtime>(
-    host: &mut Host,
-    mut inbox: Vec<Message>,
-) -> Vec<Message> {
+/// Read a message from the inbox
+///
+/// It will only read messages External Messages with the MAGIC_BYTE
+/// Benchmark: 2_000_000 ticks (processing an inbox with only one message)
+pub fn read_input<Host: RawRollupCore>(host: &mut Host) -> Result<Option<Message>, &'static str> {
     let input = host.read_input(MAX_INPUT_MESSAGE_SIZE);
     match input {
-        Err(_) => inbox, // Should we failwith
-        Ok(None) => inbox,
+        Err(_) => Err("Cannot read the inbox"),
+        Ok(None) => Ok(None),
         Ok(Some(message)) => {
             let data = message.as_ref();
             match data {
                 [0x01, MAGIC_BYTE, ..] => {
-                    let bytes = data.iter().skip(2).copied().collect(); // Skip first and magic byte.
-                    let str = String::from_utf8(bytes); // JSON string
+                    let bytes = data.iter().skip(2).copied().collect();
+                    let str = String::from_utf8(bytes);
                     match str {
-                        Err(_) => aux_stage_one(host, inbox),
+                        Err(_) => read_input(host), // Maybe we should handle the error in another way
                         Ok(string) => {
-                            // aux_stage_one(host, inbox)
                             let str = serde_json_wasm::from_str(&string);
                             match str {
-                                Err(_) => aux_stage_one(host, inbox),
-                                Ok(msg) => {
-                                    inbox.push(msg);
-                                    aux_stage_one(host, inbox)
-                                }
+                                Err(_) => read_input(host), // Maybe we should handle the error in another way
+                                Ok(msg) => Ok(Some(msg)),
                             }
                         }
                     }
                 }
-                _ => aux_stage_one(host, inbox),
+                _ => read_input(host),
             }
         }
     }
-}
-
-/**
- * Parse the inbox into a list of messages
- */
-pub fn stage_one<Host: RawRollupCore>(host: &mut Host) -> Vec<Message> {
-    aux_stage_one(host, Vec::default())
 }
