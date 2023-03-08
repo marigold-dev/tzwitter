@@ -1,9 +1,11 @@
 use crate::{
     constants::MAGIC_BYTE,
     core::{
-        message::{Content, Inner},
+        message::{Content, Inner, PostTweet},
         nonce::Nonce,
+        tweet::Tweet,
     },
+    storage::store_tweet,
 };
 use host::{
     rollup_core::{RawRollupCore, MAX_INPUT_MESSAGE_SIZE},
@@ -63,4 +65,15 @@ pub fn verify_nonce(inner: Inner, nonce: &Nonce) -> Result<Content> {
     } else {
         Err(Error::InvalidNonce)
     }
+}
+
+/// Create a new tweet from the PostTweet request
+/// Save the tweet to the durable state
+pub fn create_tweet<Host: RawRollupCore + Runtime>(
+    host: &mut Host,
+    post_tweet: PostTweet,
+) -> Result<()> {
+    let tweet = Tweet::from(post_tweet);
+    let _ = store_tweet(host, &tweet)?;
+    Ok(())
 }

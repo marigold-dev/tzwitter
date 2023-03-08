@@ -1,11 +1,11 @@
 use crypto::hash::ContractTz1Hash;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::core::public_key::PublicKey;
 
 use super::hash::Blake2b20;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub enum PublicKeyHash {
     Tz1(ContractTz1Hash),
 }

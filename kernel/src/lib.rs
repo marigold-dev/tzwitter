@@ -1,3 +1,4 @@
+use crate::core::message::Content;
 use crate::core::public_key_hash::PublicKeyHash;
 
 // src/lib.rs
@@ -11,7 +12,7 @@ mod stages;
 mod storage;
 
 use crate::core::error::*;
-use stages::{read_input, verify_nonce, verify_signature};
+use stages::{create_tweet, read_input, verify_nonce, verify_signature};
 
 /// A step is processing only one message from the inbox
 ///
@@ -32,9 +33,14 @@ fn step<Host: RawRollupCore>(host: &mut Host) -> Result<()> {
 
     // Verify the nonce
     let account = read_account(host, public_key_hash)?;
-    let _content = verify_nonce(inner, account.nonce())?;
+    let content = verify_nonce(inner, account.nonce())?;
     let account = account.increment_nonce();
     let _ = store_account(host, &account)?;
+
+    // Interpret the message
+    let () = match content {
+        Content::PostTweet(post_tweet) => create_tweet(host, post_tweet)?,
+    };
 
     Ok(())
 }
