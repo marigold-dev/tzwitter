@@ -897,6 +897,7 @@ dependencies = [
  "crypto",
  "debug",
  "ed25519-compact",
+ "hex",
  "host",
  "kernel",
  "mock_host",
