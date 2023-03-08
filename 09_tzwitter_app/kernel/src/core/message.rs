@@ -7,8 +7,8 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct PostTweet {
-    author: PublicKeyHash, // define a new type for public key
-    content: String,
+    pub author: PublicKeyHash, // define a new type for public key
+    pub content: String,
 }
 
 #[derive(Deserialize)]
