@@ -43,6 +43,22 @@ impl From<PublicKey> for PublicKeyHash {
     }
 }
 
+impl<'a> From<&'a PublicKey> for PublicKeyHash {
+    fn from(pkey: &'a PublicKey) -> Self {
+        match pkey {
+            PublicKey::Ed25519(ed25519) => {
+                let data = ed25519.as_ref();
+                let hash = Blake2b20::from(data);
+                let res = ContractTz1Hash::try_from(hash.as_ref());
+                match res {
+                    Ok(res) => PublicKeyHash::Tz1(res),
+                    Err(_) => panic!(),
+                }
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::core::public_key::PublicKey;
