@@ -7,16 +7,32 @@ mod core;
 mod stages;
 mod storage;
 
-use stages::stage_one;
+use stages::read_input;
+
+fn execute<Host: RawRollupCore>(host: &mut Host) -> Result<(), &'static str> {
+    let message = read_input(host)?;
+    match message {
+        None => Ok(()),
+        Some(_message) => {
+            host.write_debug("Processing message");
+
+            // TODO: verify signature
+            // TODO: interpret the message
+            // TODO: save the message to the durable state
+
+            // TODO: check if reboot is required
+            execute(host)
+        }
+    }
+}
 
 fn entry<Host: RawRollupCore>(host: &mut Host) {
     host.write_debug("Hello Kernel\n");
-    let messages = stage_one(host);
 
-    // TODO: extract this into a new stage
-    messages.iter().for_each(|_| {
-        host.write_debug("Receive a message\n");
-    });
+    match execute(host) {
+        Ok(()) => {}
+        Err(err) => host.write_debug(err),
+    }
 }
 
 kernel_entry!(entry);
