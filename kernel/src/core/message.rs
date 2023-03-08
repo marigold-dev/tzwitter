@@ -1,3 +1,4 @@
+use host::runtime::Runtime;
 use serde::Deserialize;
 
 use crate::core::hash::Blake2b;
@@ -17,7 +18,7 @@ enum Content {
 }
 
 #[derive(Deserialize)]
-struct Inner {
+pub struct Inner {
     nonce: u64,
     content: Content,
 }
@@ -26,13 +27,30 @@ struct Inner {
 pub struct Message {
     pkey: PublicKey,
     signature: Signature,
-    inner: Inner,
+    pub inner: Inner,
+}
+
+impl Message {
+    /// Returns the public key of the message
+    pub fn public_key(&self) -> &PublicKey {
+        &self.pkey
+    }
+
+    /// Returns the signature of the message
+    pub fn signature(&self) -> &Signature {
+        &self.signature
+    }
+
+    /// Returns the inner of the message
+    pub fn inner(&self) -> &Inner {
+        &self.inner
+    }
 }
 
 impl Inner {
     /// Hash of the message
     /// This hash is what the client should signed
-    fn hash(&self) -> Blake2b {
+    pub fn hash(&self) -> Blake2b {
         // The nonce, and content should be hashed
         let Inner { nonce, content } = &self;
         match &content {

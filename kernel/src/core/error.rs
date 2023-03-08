@@ -5,6 +5,8 @@ pub enum Error {
     EndOfInbox,
     NotATzwitterMessage,
     Runtime, // Too generic
+    Ed25519Compact(ed25519_compact::Error),
+    InvalidSignature,
 }
 
 impl ToString for Error {
@@ -15,6 +17,8 @@ impl ToString for Error {
             Error::NotATzwitterMessage => "Not a Tzwitter message".to_string(),
             Error::FromUtf8Error(_) => "Cannot convert bytes to string".to_string(),
             Error::Runtime => "Runtime error, caused by host function".to_string(),
+            Error::Ed25519Compact(_) => "Cannot deserialize Ed25519".to_string(),
+            Error::InvalidSignature => "Invalid signature".to_string(),
         }
     }
 }
@@ -31,5 +35,6 @@ macro_rules! register_error {
 
 register_error!(FromUtf8Error, std::string::FromUtf8Error);
 register_error!(SerdeJson, serde_json_wasm::de::Error);
+register_error!(Ed25519Compact, ed25519_compact::Error);
 
 pub type Result<A> = std::result::Result<A, Error>;
