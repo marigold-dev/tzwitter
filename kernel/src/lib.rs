@@ -31,10 +31,10 @@ fn step<Host: RawRollupCore>(host: &mut Host) -> Result<()> {
     host.write_debug("Signature is correct\n");
 
     // Verify the nonce
-    let account = read_account(host, &public_key_hash)?;
+    let account = read_account(host, public_key_hash)?;
     let _content = verify_nonce(inner, account.nonce())?;
     let account = account.increment_nonce();
-    let _ = store_account(host, &public_key_hash, &account)?;
+    let _ = store_account(host, &account)?;
 
     Ok(())
 }

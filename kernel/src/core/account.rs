@@ -2,8 +2,10 @@ use serde::Serialize;
 
 use crate::core::nonce::Nonce;
 
-#[derive(Serialize)]
+use super::public_key_hash::PublicKeyHash;
+
 pub struct Account {
+    pub public_key_hash: PublicKeyHash,
     pub nonce: Nonce,
 }
 
@@ -17,6 +19,7 @@ impl Account {
     pub fn increment_nonce(self) -> Account {
         Account {
             nonce: self.nonce.next(),
+            ..self
         }
     }
 }
