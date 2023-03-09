@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react';
 import './css/index.css';
 import { InMemorySigner } from "@taquito/signer";
 import { Tzwitter } from '../lib/tzwitter';
+import { Tweet } from '../lib/tweet';
+import NumberOfTweets from '../components/NumberOfTweets';
+import Feed from '../components/Feed';
+import Input from '../components/Input';
 
 const secret = "edsk3a5SDDdMWw3Q5hPiJwDXUosmZMTuKQkriPqY6UqtSfdLifpZbB";
 const signer = new InMemorySigner(secret);
@@ -12,16 +16,18 @@ const tzwitter = new Tzwitter({ signer, tezosUrl: TEZOS_URL, rollupUrl: ROLLUP_U
 
 const Index = () => {
   const [tweet, setTweet] = useState("");
-  const [tweets, setTweets] = useState<Array<string>>([]);
+  const [tweets, setTweets] = useState<Array<Tweet>>([]);
 
   useEffect(() => {
-    const id = setInterval(async () => {
+    const retrieveTweets = async () => {
       const tzwIds = await tzwitter.getTweets();
       const tweets = await Promise.all(tzwIds.map((id) => {
         return tzwitter.getTweet(id);
       }));
       setTweets(tweets);
-    }, 5000);
+    }
+    retrieveTweets();
+    const id = setInterval(retrieveTweets, 5000);
     return () => {
       clearInterval(id);
     }
@@ -33,16 +39,13 @@ const Index = () => {
   }
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <p> Welcome to Tzwitter</p>
-        <input onChange={(evt) => setTweet(evt.target.value)} value={tweet} />
-        <button onClick={(post)}>Send the tweet</button>
-
-        {tweets.map(tweet => <div key={tweet}>{tweet}</div>)}
-
-      </header>
-    </div >
+    <div id="container">
+      <div id="content">
+        <Input value={tweet} onChange={(evt) => setTweet(evt.target.value)} onSubmit={post} disabled={!tweet} />
+        <NumberOfTweets number={tweets.length} />
+        <Feed tweets={tweets} />
+      </div>
+    </div>
   );
 }
 
