@@ -31,8 +31,7 @@ dac_pid=$!
 
 # Split the kernel
 sleep 3; # To be sure the dac is started
-ROOT_HASH=$(curl --silent --header "Content-Type: application/json" -X POST -d "{\"payload\":\"$KERNEL\", \"pagination_scheme\":\"Merkle_tree_V0\" }" http://localhost:10832/store_preimage | jq -r ".root_hash");
-kill $dac_pid
+ROOT_HASH=$(echo "{\"payload\": \"$KERNEL\", \"pagination_scheme\":\"Merkle_tree_V0\"}" | curl --silent --header "Content-Type: application/json" -X POST -d @- http://localhost:10832/store_preimage | jq -r ".root_hash");
 
 # Installer kernel
 # To be faster we clone only one time the kernel repository
@@ -42,7 +41,7 @@ fi
 
 # Modify the line 41 of the installer_kernel (TODO: find a regex to do so, that does not implu )
 cd /tmp/kernel
-sed -i "41s/.*/b\"${ROOT_HASH}\";/" /tmp/kernel/installer_kernel/src/lib.rs
+sed -i "66s/.*/b\"${ROOT_HASH}\";/" /tmp/kernel/installer_kernel/src/lib.rs
 cargo make wasm-preimage-installer 
 
 wasm-strip /tmp/kernel/target/wasm32-unknown-unknown/release/tezos_rollup_installer_kernel.wasm
