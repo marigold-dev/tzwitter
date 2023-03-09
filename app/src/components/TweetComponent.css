@@ -1,0 +1,20 @@
+.tweet {
+  width: 100%;
+  border-bottom: 1px solid rgb(62, 65, 68);
+  color: white;
+  padding-left: 64px;
+  padding-right: 64px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.tweet-author {
+  color: white;
+  font-weight: 600;
+}
+
+.tweet-content {
+  color: white;
+  font-size: 24px;
+}
