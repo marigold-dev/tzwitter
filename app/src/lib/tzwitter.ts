@@ -22,12 +22,13 @@ class Tzwitter {
         const publicKeyHash = await this.signer.publicKeyHash();
         // Compute the next nonce of the user
         const nonceBytes = await this.rollupClient.getState(`/accounts/${publicKeyHash}/nonce`);
-        const nonce = Number.parseInt(nonceBytes, 16) + 1;
+        const nonce = Number.parseInt((nonceBytes || "00000000"), 16) + 1;
 
         // Hash the payload to sign it later
         const strNonce = nonce.toString(16).padStart(8, "0");
         const publicKey = await this.signer.publicKey();
         const toHash = `${strNonce}${publicKeyHash}${tweet}`;
+        console.log(toHash);
         const hash = blake2bHex(toHash, undefined, 32);
 
         // Sign the payload
@@ -54,6 +55,7 @@ class Tzwitter {
         };
         const strRequest = JSON.stringify(request);
         const payload = Buffer.from(strRequest).toString("hex");
+        console.log(payload);
         // Add the magic byte and send the payload
         return this.rollupClient.send(this.magicByte + payload);
     }
