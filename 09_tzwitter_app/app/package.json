@@ -11,6 +11,7 @@
     "@types/node": "^16.7.13",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
+    "blakejs": "^1.2.1",
     "os-browserify": "^0.3.0",
     "react": "^18.2.0",
     "react-app-rewired": "^2.2.1",
