@@ -5,7 +5,7 @@ use crate::{
         nonce::Nonce,
         tweet::Tweet,
     },
-    storage::store_tweet,
+    storage::{increment_tweet_counter, store_tweet},
 };
 use host::{
     rollup_core::{RawRollupCore, MAX_INPUT_MESSAGE_SIZE},
@@ -73,7 +73,8 @@ pub fn create_tweet<Host: RawRollupCore + Runtime>(
     host: &mut Host,
     post_tweet: PostTweet,
 ) -> Result<()> {
+    let id = increment_tweet_counter(host)?;
     let tweet = Tweet::from(post_tweet);
-    let _ = store_tweet(host, &tweet)?;
+    let _ = store_tweet(host, &id, &tweet)?;
     Ok(())
 }

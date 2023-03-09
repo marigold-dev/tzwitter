@@ -78,21 +78,29 @@ kernel_entry!(entry);
 
 #[cfg(test)]
 mod tests {
+    use host::runtime::Runtime;
     use mock_runtime::{host::MockHost, state::HostState};
 
-    use crate::{constants::MAGIC_BYTE, step};
+    use crate::{constants::MAGIC_BYTE, step, storage::TWEETS};
 
-    fn valid_input() -> Vec<u8> {
+    /// Valid input that represent the content "Hello world" and the nonce 0
+    fn input_1() -> Vec<u8> {
         let input = "7b22706b6579223a7b2245643235353139223a226564706b75444d556d375935337770346778654c425875694168585a724c6e385842315238336b737676657348384c7038626d43664b227d2c227369676e6174757265223a7b2245643235353139223a226564736967746658484337537875433378754453423563624a426a786b514672656f6e38584368526750446f674547355662506542545250794341513156586a75734e4a375537456557674d44703679634159473334774851665667726d47454a6974227d2c22696e6e6572223a7b226e6f6e6365223a312c22636f6e74656e74223a7b22506f73745477656574223a7b22617574686f72223a7b22547a31223a22747a315146443957714c575a6d6d4175716e6e545050556a666175697459455764736876227d2c22636f6e74656e74223a2248656c6c6f20776f726c64227d7d7d7d";
         let msg = format!("01{:02x}{}", MAGIC_BYTE, input);
+        hex::decode(msg).unwrap()
+    }
 
+    /// Valid input that represent the content "Hello world" and the nonce 1
+    fn input_2() -> Vec<u8> {
+        let input = "7b22706b6579223a7b2245643235353139223a226564706b75444d556d375935337770346778654c425875694168585a724c6e385842315238336b737676657348384c7038626d43664b227d2c227369676e6174757265223a7b2245643235353139223a226564736967745a6647345a51346263746f65427a3166437053745141525473695154466974567067756652786d366b365a743478596e3432675647694d447634426236376331536d6f793270514b376569666533387148327455756f69627344597a6d227d2c22696e6e6572223a7b226e6f6e6365223a322c22636f6e74656e74223a7b22506f73745477656574223a7b22617574686f72223a7b22547a31223a22747a315146443957714c575a6d6d4175716e6e545050556a666175697459455764736876227d2c22636f6e74656e74223a2248656c6c6f20776f726c64227d7d7d7d";
+        let msg = format!("01{:02x}{}", MAGIC_BYTE, input);
         hex::decode(msg).unwrap()
     }
 
     #[test]
     fn test_step() {
         let state = HostState::default();
-        let input = valid_input();
+        let input = input_1();
         let inputs = [input.as_slice()].into_iter();
         let mut host = MockHost::from(state);
 
@@ -100,14 +108,13 @@ mod tests {
         host.as_mut().add_next_inputs(0, inputs);
 
         let res = step(&mut host);
-
-        assert!(res.is_ok());
+        assert!(res.is_ok())
     }
 
     #[test]
     fn test_replay_attack() {
         let state = HostState::default();
-        let input = valid_input();
+        let input = input_1();
         let inputs = [input.as_slice(), input.as_slice()].into_iter();
         let mut host = MockHost::from(state);
         host.as_mut().set_ready_for_input(0);
@@ -118,5 +125,24 @@ mod tests {
 
         assert!(res1.is_ok());
         assert!(res2.is_err());
+    }
+
+    #[test]
+    fn test_identical_tweets() {
+        let state = HostState::default();
+        let input_1 = input_1();
+        let input_2 = input_2();
+        let inputs = [input_1.as_slice(), input_2.as_slice()].into_iter();
+        let mut host = MockHost::from(state);
+        host.as_mut().set_ready_for_input(0);
+        host.as_mut().add_next_inputs(0, inputs);
+
+        let _ = step(&mut host);
+        let number_of_tweets_1 = Runtime::store_count_subkeys(&host, &TWEETS).unwrap();
+
+        let _ = step(&mut host);
+        let number_of_tweets_2 = Runtime::store_count_subkeys(&host, &TWEETS).unwrap();
+
+        assert_eq!(number_of_tweets_1 + 2, number_of_tweets_2);
     }
 }
