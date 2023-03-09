@@ -71,14 +71,10 @@ fn read_nonce<Host: RawRollupCore + Runtime>(
             let mut buffer = [0_u8; 8];
             match load_value_slice(host, &path, &mut buffer) {
                 Ok(8) => {
-                    host.write_debug("what");
                     let nonce = u64::from_be_bytes(buffer);
                     Ok(Nonce(nonce))
                 }
-                _ => {
-                    host.write_debug("ooooo");
-                    Err(Error::StateDeserializarion)
-                }
+                _ => Err(Error::StateDeserializarion),
             }
         }
     }
