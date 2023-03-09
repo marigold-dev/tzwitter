@@ -9,9 +9,26 @@
   box-sizing: border-box;
 }
 
+.tweet-header {
+  display: flex;
+  align-items: center;
+}
+
+.tweet-header-separator {
+  margin-left: 8px;
+  margin-right: 8px;
+  color: rgb(62, 65, 68);
+  font-size: 12px;
+}
+
 .tweet-author {
   color: white;
   font-weight: 600;
+}
+
+.tweet-id {
+  color: rgb(62, 65, 68);
+  font-size: 18px;
 }
 
 .tweet-content {

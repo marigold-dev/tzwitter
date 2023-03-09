@@ -94,17 +94,20 @@ class Tzwitter {
     const author = Buffer.from(authorBytes, 'hex').toString('utf-8');
     const content = Buffer.from(contentBytes, 'hex').toString('utf-8');
 
-    return { author, content };
+    return { id: tweetId, author, content };
   }
 
   /**
-   * Returns the list of ids
+   * Returns the ordered list of ids
    * @returns
    */
   async getTweets(): Promise<Array<string>> {
     const path = `/tweets`;
     const ids = await this.rollupClient.getSubkeys(path);
-    return ids;
+    return ids
+      .map((id: string) => Number.parseInt(id))
+      .sort()
+      .reverse();
   }
 }
 

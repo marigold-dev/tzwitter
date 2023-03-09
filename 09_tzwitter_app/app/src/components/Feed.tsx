@@ -4,8 +4,8 @@ import TweetComponent from './TweetComponent';
 const Feed = ({ tweets }: { tweets: Array<Tweet> }) => {
   return (
     <div>
-      {tweets.map((tweet, id) => (
-        <TweetComponent key={id} {...tweet} />
+      {tweets.map((tweet) => (
+        <TweetComponent key={tweet.id} {...tweet} />
       ))}
     </div>
   );
