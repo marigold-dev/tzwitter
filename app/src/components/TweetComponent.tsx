@@ -1,8 +1,13 @@
 import { Tweet } from '../lib/tweet';
 import './TweetComponent.css';
 
-const TweetComponent = (tweet: Tweet) => {
-  const { id, author, content } = tweet;
+interface TweetProperty {
+  tweet: Tweet;
+  onLike: () => Promise<string>;
+}
+
+const TweetComponent = ({ tweet, onLike }: TweetProperty) => {
+  const { id, author, content, likes } = tweet;
   return (
     <div className="tweet">
       <div className="tweet-header">
@@ -11,6 +16,12 @@ const TweetComponent = (tweet: Tweet) => {
         <div className="tweet-id">{id}</div>
       </div>
       <div className="tweet-content">{content}</div>
+      <div className="tweet-footer">
+        <div className="tweet-likes" onClick={onLike}>
+          <img className="tweet-likes-icon" src={'/heart.svg'} />
+          <span>{likes}</span>
+        </div>
+      </div>
     </div>
   );
 };
