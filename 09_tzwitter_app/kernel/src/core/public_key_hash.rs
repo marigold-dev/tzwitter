@@ -10,18 +10,20 @@ pub enum PublicKeyHash {
     Tz1(ContractTz1Hash),
 }
 
+impl ToString for PublicKeyHash {
+    fn to_string(&self) -> String {
+        match self {
+            PublicKeyHash::Tz1(tz1) => tz1.to_base58_check(),
+        }
+    }
+}
+
 impl PublicKeyHash {
     pub fn from_b58(data: &str) -> Result<Self, &'static str> {
         let tz1 = ContractTz1Hash::from_base58_check(data).ok();
         match tz1 {
             Some(tz1) => Ok(PublicKeyHash::Tz1(tz1)),
             None => Err("Cannot parse public key hash"),
-        }
-    }
-
-    pub fn to_b58(&self) -> String {
-        match self {
-            PublicKeyHash::Tz1(tz1) => tz1.to_base58_check(),
         }
     }
 }
@@ -75,7 +77,7 @@ mod tests {
     #[test]
     fn test_tz1_serializarion() {
         let tz1 = "tz1QFD9WqLWZmmAuqnnTPPUjfauitYEWdshv";
-        let serialized = PublicKeyHash::from_b58(tz1).unwrap().to_b58();
+        let serialized = PublicKeyHash::from_b58(tz1).unwrap().to_string();
         assert_eq!(tz1, &serialized);
     }
 
@@ -87,6 +89,6 @@ mod tests {
 
         let result = PublicKeyHash::from(pkey);
 
-        assert_eq!(tz1, &result.to_b58())
+        assert_eq!(tz1, &result.to_string())
     }
 }
