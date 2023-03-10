@@ -9,7 +9,7 @@ import Input from '../components/Input';
 
 const secret = 'edsk3a5SDDdMWw3Q5hPiJwDXUosmZMTuKQkriPqY6UqtSfdLifpZbB';
 const signer = new InMemorySigner(secret);
-const TEZOS_URL = 'https://rpc.mondaynet-2023-03-06.teztnets.xyz';
+const TEZOS_URL = 'http://localhost:18731';
 const ROLLUP_URL = 'http://localhost:8932';
 
 const tzwitter = new Tzwitter({
