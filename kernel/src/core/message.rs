@@ -61,7 +61,7 @@ impl Inner {
         let Inner { nonce, content } = &self;
         match &content {
             Content::PostTweet(PostTweet { author, content }) => {
-                let string = format!("{}{}{}", nonce.to_string(), author.to_b58(), content);
+                let string = format!("{}{}{}", nonce.to_string(), author.to_string(), content);
                 Blake2b::from(string.as_bytes())
             }
         }
