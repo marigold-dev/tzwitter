@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::core::public_key::PublicKey;
 
-use super::hash::Blake2b20;
+use crate::core::{error::Error, hash::Blake2b20};
 
 #[derive(Deserialize, Serialize)]
 pub enum PublicKeyHash {
@@ -19,11 +19,11 @@ impl ToString for PublicKeyHash {
 }
 
 impl PublicKeyHash {
-    pub fn from_b58(data: &str) -> Result<Self, &'static str> {
+    pub fn from_b58(data: &str) -> Result<Self, Error> {
         let tz1 = ContractTz1Hash::from_base58_check(data).ok();
         match tz1 {
             Some(tz1) => Ok(PublicKeyHash::Tz1(tz1)),
-            None => Err("Cannot parse public key hash"),
+            None => Err(Error::StateDeserializarion),
         }
     }
 }

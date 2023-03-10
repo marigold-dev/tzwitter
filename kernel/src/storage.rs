@@ -2,7 +2,7 @@ use crate::core::public_key_hash::PublicKeyHash;
 use crate::core::tweet::Tweet;
 use crate::core::{account::Account, error::*, nonce::Nonce};
 use host::path::Path;
-use host::runtime::load_value_slice;
+use host::runtime::{load_value_sized, load_value_slice};
 use host::{
     path::{concat, OwnedPath, RefPath},
     rollup_core::RawRollupCore,
@@ -36,6 +36,12 @@ fn tweet_author_path(tweet_id: &u64) -> Result<OwnedPath> {
 /// /tweets/{hash}/content
 fn tweet_content_path(tweet_id: &u64) -> Result<OwnedPath> {
     tweet_field_path(tweet_id, "/content")
+}
+
+/// Compute the path of the tweet content
+/// /tweets/{hash}/content
+fn tweet_likes_path(tweet_id: &u64) -> Result<OwnedPath> {
+    tweet_field_path(tweet_id, "/likes")
 }
 
 /// Compute the paths for the different fields of an account
@@ -106,6 +112,23 @@ where
         .map(|_| data)
 }
 
+fn read_string<Host: RawRollupCore + Runtime>(
+    host: &mut Host,
+    path: &OwnedPath,
+) -> Result<Option<String>> {
+    let is_exists = Runtime::store_has(host, path)?
+        .map(|_| true)
+        .unwrap_or_default();
+    if !is_exists {
+        return Ok(None);
+    }
+
+    let buffer = load_value_sized(host, path).map_err(Error::from)?;
+    String::from_utf8(buffer)
+        .map_err(Error::from)
+        .map(|str| Some(str))
+}
+
 /// Read the account of the user
 pub fn read_account<Host: RawRollupCore + Runtime>(
     host: &mut Host,
@@ -141,12 +164,18 @@ pub fn store_tweet<'a, Host: RawRollupCore + Runtime>(
     tweet_id: &u64,
     tweet: &'a Tweet,
 ) -> Result<&'a Tweet> {
-    let Tweet { author, content } = tweet;
+    let Tweet {
+        author,
+        content,
+        likes,
+    } = tweet;
     let author_path = tweet_author_path(tweet_id)?;
     let content_path = tweet_content_path(tweet_id)?;
+    let likes_path = tweet_likes_path(tweet_id)?;
 
-    let _ = store_string(host, &author_path, content)?;
-    let _ = store_string(host, &content_path, author)?;
+    let _ = store_string(host, &author_path, author)?;
+    let _ = store_string(host, &content_path, content)?;
+    let _ = store_u64(host, &likes_path, likes)?;
 
     Ok(tweet)
 }
@@ -157,4 +186,33 @@ pub fn increment_tweet_counter<Host: RawRollupCore + Runtime>(host: &mut Host) -
     let next_counter = previous_counter + 1;
     let _ = store_u64(host, &TWEET_COUNTER, &next_counter)?;
     Ok(previous_counter)
+}
+
+/// Read a tweet from the durable state
+///
+/// If the tweet is not present an Option is return
+pub fn read_tweet<Host: RawRollupCore + Runtime>(
+    host: &mut Host,
+    tweet_id: &u64,
+) -> Result<Option<Tweet>> {
+    let author_path = tweet_author_path(tweet_id)?;
+    let content_path = tweet_content_path(tweet_id)?;
+    let likes_path = tweet_likes_path(tweet_id)?;
+
+    let author = read_string(host, &author_path)?;
+    let author = match author {
+        None => None,
+        Some(str) => Some(PublicKeyHash::from_b58(&str)?),
+    };
+    let content = read_string(host, &content_path)?;
+    let likes = read_u64(host, &likes_path)?;
+
+    match (author, content, likes) {
+        (Some(author), Some(content), Some(likes)) => Ok(Some(Tweet {
+            author,
+            content,
+            likes,
+        })),
+        _ => Ok(None),
+    }
 }
