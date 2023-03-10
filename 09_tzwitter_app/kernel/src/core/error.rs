@@ -1,4 +1,6 @@
 /// Represents all the error of the kernel
+///
+#[derive(Debug)]
 pub enum Error {
     SerdeJson(serde_json_wasm::de::Error),
     FromUtf8Error(std::string::FromUtf8Error),
@@ -10,6 +12,7 @@ pub enum Error {
     InvalidNonce,
     PathError(host::path::PathError),
     StateDeserializarion,
+    TweetNotFound,
 }
 
 impl ToString for Error {
@@ -25,6 +28,7 @@ impl ToString for Error {
             Error::InvalidNonce => "Invalid nonce".to_string(),
             Error::PathError(_) => "Invalid path".to_string(),
             Error::StateDeserializarion => "State deserialization".to_string(),
+            Error::TweetNotFound => "Tweet not found".to_string(),
         }
     }
 }

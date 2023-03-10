@@ -14,6 +14,7 @@ pub struct PostTweet {
 #[derive(Deserialize)]
 pub enum Content {
     PostTweet(PostTweet),
+    LikeTweet(u64),
 }
 
 #[derive(Deserialize)]
@@ -62,6 +63,10 @@ impl Inner {
         match &content {
             Content::PostTweet(PostTweet { author, content }) => {
                 let string = format!("{}{}{}", nonce.to_string(), author.to_string(), content);
+                Blake2b::from(string.as_bytes())
+            }
+            Content::LikeTweet(tweet_id) => {
+                let string = format!("{}{}", nonce.to_string(), tweet_id);
                 Blake2b::from(string.as_bytes())
             }
         }

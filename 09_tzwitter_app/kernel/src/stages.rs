@@ -5,7 +5,7 @@ use crate::{
         nonce::Nonce,
         tweet::Tweet,
     },
-    storage::{increment_tweet_counter, store_tweet},
+    storage::{increment_tweet_counter, read_tweet, store_tweet},
 };
 use host::{
     rollup_core::{RawRollupCore, MAX_INPUT_MESSAGE_SIZE},
@@ -77,4 +77,16 @@ pub fn create_tweet<Host: RawRollupCore + Runtime>(
     let tweet = Tweet::from(post_tweet);
     let _ = store_tweet(host, &id, &tweet)?;
     Ok(())
+}
+
+pub fn like_tweet<Host: RawRollupCore + Runtime>(host: &mut Host, tweet_id: &u64) -> Result<()> {
+    let tweet = read_tweet(host, tweet_id)?;
+    match tweet {
+        None => Err(Error::TweetNotFound),
+        Some(tweet) => {
+            let tweet = tweet.like();
+            store_tweet(host, tweet_id, &tweet)?;
+            Ok(())
+        }
+    }
 }
