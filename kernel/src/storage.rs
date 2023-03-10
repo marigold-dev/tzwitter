@@ -62,15 +62,26 @@ fn nonce_path(public_key_hash: &PublicKeyHash) -> Result<OwnedPath> {
     account_field_path(public_key_hash, "/nonce")
 }
 
+/// Compute the path to the liked tweet
+fn account_likes_path(public_key_hash: &PublicKeyHash, tweet_id: &u64) -> Result<OwnedPath> {
+    account_field_path(public_key_hash, &format!("/likes/{}", tweet_id))
+}
+
+///  Check if a path exists
+fn exists<Host: RawRollupCore + Runtime>(host: &mut Host, path: &impl Path) -> Result<bool> {
+    let exists = Runtime::store_has(host, path)?
+        .map(|_| true)
+        .unwrap_or_default();
+    Ok(exists)
+}
+
 /// Read an u64 from a given path
 /// If the data does not exist, it returns the default value of an u64
 fn read_u64<Host: RawRollupCore + Runtime>(
     host: &mut Host,
     path: &impl Path,
 ) -> Result<Option<u64>> {
-    let is_exists = Runtime::store_has(host, path)?
-        .map(|_| true)
-        .unwrap_or_default();
+    let is_exists = exists(host, path)?;
     if !is_exists {
         return Ok(None);
     }
@@ -116,9 +127,7 @@ fn read_string<Host: RawRollupCore + Runtime>(
     host: &mut Host,
     path: &OwnedPath,
 ) -> Result<Option<String>> {
-    let is_exists = Runtime::store_has(host, path)?
-        .map(|_| true)
-        .unwrap_or_default();
+    let is_exists = exists(host, path)?;
     if !is_exists {
         return Ok(None);
     }
@@ -127,6 +136,14 @@ fn read_string<Host: RawRollupCore + Runtime>(
     String::from_utf8(buffer)
         .map_err(Error::from)
         .map(|str| Some(str))
+}
+
+/// Creates a flag at the given path
+fn store_flag<Host: RawRollupCore + Runtime>(host: &mut Host, path: &impl Path) -> Result<()> {
+    let data = [0x00].as_slice();
+    host.store_write(path, data, 0)
+        .map_err(Error::from)
+        .map(|_| ())
 }
 
 /// Read the account of the user
@@ -215,4 +232,24 @@ pub fn read_tweet<Host: RawRollupCore + Runtime>(
         })),
         _ => Ok(None),
     }
+}
+
+/// Create a flag in the user account that indicates that the user has liked the given tweet
+pub fn set_like_flag<Host: RawRollupCore + Runtime>(
+    host: &mut Host,
+    public_key_hash: &PublicKeyHash,
+    tweet_id: &u64,
+) -> Result<()> {
+    let path = account_likes_path(public_key_hash, tweet_id)?;
+    store_flag(host, &path)
+}
+
+/// Check if the user has a like a tweet
+pub fn is_liked<Host: RawRollupCore + Runtime>(
+    host: &mut Host,
+    public_key_hash: &PublicKeyHash,
+    tweet_id: &u64,
+) -> Result<bool> {
+    let path = account_likes_path(public_key_hash, tweet_id)?;
+    exists(host, &path)
 }
