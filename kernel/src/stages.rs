@@ -1,11 +1,12 @@
 use crate::{
     constants::MAGIC_BYTE,
     core::{
+        account::Account,
         message::{Content, Inner, PostTweet},
         nonce::Nonce,
         tweet::Tweet,
     },
-    storage::{increment_tweet_counter, read_tweet, store_tweet},
+    storage::{increment_tweet_counter, is_liked, read_tweet, set_like_flag, store_tweet},
 };
 use host::{
     rollup_core::{RawRollupCore, MAX_INPUT_MESSAGE_SIZE},
@@ -79,14 +80,25 @@ pub fn create_tweet<Host: RawRollupCore + Runtime>(
     Ok(())
 }
 
-pub fn like_tweet<Host: RawRollupCore + Runtime>(host: &mut Host, tweet_id: &u64) -> Result<()> {
-    let tweet = read_tweet(host, tweet_id)?;
-    match tweet {
-        None => Err(Error::TweetNotFound),
-        Some(tweet) => {
-            let tweet = tweet.like();
-            store_tweet(host, tweet_id, &tweet)?;
-            Ok(())
+pub fn like_tweet<Host: RawRollupCore + Runtime>(
+    host: &mut Host,
+    account: &Account,
+    tweet_id: &u64,
+) -> Result<()> {
+    let already_liked = is_liked(host, &account.public_key_hash, tweet_id)?;
+    match already_liked {
+        true => Err(Error::TweetAlreadyLiked),
+        false => {
+            let tweet = read_tweet(host, tweet_id)?;
+            match tweet {
+                None => Err(Error::TweetNotFound),
+                Some(tweet) => {
+                    let tweet = tweet.like();
+                    store_tweet(host, tweet_id, &tweet)?;
+                    let _ = set_like_flag(host, &account.public_key_hash, &tweet_id)?;
+                    Ok(())
+                }
+            }
         }
     }
 }

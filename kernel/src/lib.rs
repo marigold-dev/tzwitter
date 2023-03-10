@@ -40,7 +40,7 @@ fn step<Host: RawRollupCore>(host: &mut Host) -> Result<()> {
     // Interpret the message
     let () = match content {
         Content::PostTweet(post_tweet) => create_tweet(host, post_tweet)?,
-        Content::LikeTweet(tweet_id) => like_tweet(host, &tweet_id)?,
+        Content::LikeTweet(tweet_id) => like_tweet(host, &account, &tweet_id)?,
     };
 
     Ok(())
@@ -64,6 +64,7 @@ fn execute<Host: RawRollupCore>(host: &mut Host) -> Result<()> {
         Err(Error::PathError(_)) => execute(host),
         Err(Error::StateDeserializarion) => execute(host),
         Err(Error::TweetNotFound) => execute(host),
+        Err(Error::TweetAlreadyLiked) => execute(host),
     }
 }
 
@@ -106,6 +107,12 @@ mod tests {
     /// Create a like for tweet 0 with counter 1
     fn input_like() -> Vec<u8> {
         let input = "7b22706b6579223a7b2245643235353139223a226564706b75444d556d375935337770346778654c425875694168585a724c6e385842315238336b737676657348384c7038626d43664b227d2c227369676e6174757265223a7b2245643235353139223a226564736967746b717577626a4a467a41464c7134345267527454564e777948774857624b386e47343855564b5069766b32635057505735345359335935534e4439786635463852795335424e665861595a4c453664776d554b70325541394275435a32227d2c22696e6e6572223a7b226e6f6e6365223a322c22636f6e74656e74223a7b224c696b655477656574223a307d7d7d";
+        let msg = format!("01{:02x}{}", MAGIC_BYTE, input);
+        hex::decode(msg).unwrap()
+    }
+
+    fn input_like_2() -> Vec<u8> {
+        let input = "7b22706b6579223a7b2245643235353139223a226564706b75444d556d375935337770346778654c425875694168585a724c6e385842315238336b737676657348384c7038626d43664b227d2c227369676e6174757265223a7b2245643235353139223a22656473696774775a6d6376566470575361696836646a5057526172645668723154614b32786275646a7937686d7a6a65456e4b77766747346d50676455573478764254714452584e5348596f6a5973395a796d5968565469586d667a67323778624846227d2c22696e6e6572223a7b226e6f6e6365223a332c22636f6e74656e74223a7b224c696b655477656574223a307d7d7d";
         let msg = format!("01{:02x}{}", MAGIC_BYTE, input);
         hex::decode(msg).unwrap()
     }
@@ -178,5 +185,25 @@ mod tests {
         let tweet = read_tweet(&mut host, &0).unwrap().unwrap();
         assert_eq!(tweet.likes, 1);
         assert!(true)
+    }
+
+    #[test]
+    fn test_like_two_times_same_tweet() {
+        let state = HostState::default();
+        let input_1 = input_1();
+        let input_2 = input_like();
+        let input_3 = input_like_2();
+        let inputs = [input_1.as_slice(), input_2.as_slice(), input_3.as_slice()].into_iter();
+
+        let mut host = MockHost::from(state);
+        host.as_mut().set_ready_for_input(0);
+        host.as_mut().add_next_inputs(0, inputs);
+
+        let _ = step(&mut host);
+        let res_like_1 = step(&mut host);
+        let res_like_2 = step(&mut host);
+
+        assert!(res_like_1.is_ok());
+        assert!(res_like_2.is_err());
     }
 }
