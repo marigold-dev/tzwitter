@@ -38,12 +38,16 @@ const Index = () => {
     setTweet("");
   }
 
+  const onLike = (tweetId: number) => async () => {
+    return await tzwitter.like(tweetId)
+  }
+
   return (
     <div id="container">
       <div id="content">
         <Input value={tweet} onChange={(evt) => setTweet(evt.target.value)} onSubmit={post} disabled={!tweet} />
         <NumberOfTweets number={tweets.length} />
-        <Feed tweets={tweets} />
+        <Feed tweets={tweets} onLike={onLike} />
       </div>
     </div>
   );
