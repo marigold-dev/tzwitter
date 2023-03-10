@@ -35,3 +35,33 @@
   color: white;
   font-size: 24px;
 }
+
+.tweet-footer {
+  margin-top: 4px;
+  width: 100%;
+  display: flex;
+}
+
+.tweet-likes {
+  display: flex;
+  align-items: center;
+  color: rgb(62, 65, 68);
+  padding: 4px;
+  border-radius: 8px;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.tweet-likes:hover {
+  cursor: pointer;
+  background-color: rgb(249, 24, 128, 0.2);
+  color: rgb(249, 24, 128);
+  filter: invert(20%) sepia(57%) saturate(6692%) hue-rotate(322deg)
+    brightness(103%) contrast(95%);
+  /* To change the color of the svg with css*/
+}
+
+.tweet-likes-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+}
