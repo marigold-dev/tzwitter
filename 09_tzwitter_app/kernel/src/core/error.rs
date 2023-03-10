@@ -13,6 +13,7 @@ pub enum Error {
     PathError(host::path::PathError),
     StateDeserializarion,
     TweetNotFound,
+    TweetAlreadyLiked,
 }
 
 impl ToString for Error {
@@ -29,6 +30,9 @@ impl ToString for Error {
             Error::PathError(_) => "Invalid path".to_string(),
             Error::StateDeserializarion => "State deserialization".to_string(),
             Error::TweetNotFound => "Tweet not found".to_string(),
+            Error::TweetAlreadyLiked => {
+                "The tweet has already been liked by this account".to_string()
+            }
         }
     }
 }
