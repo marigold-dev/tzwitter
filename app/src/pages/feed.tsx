@@ -4,6 +4,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import FeedHeader from '../components/FeedHeader';
 import Menu from '../components/menu';
 import { Tzwitter } from '../lib/tzwitter';
+import FeedKind from '../components/FeedKind';
+import { useState } from 'react';
 
 interface FeedProperty {
   tzwitter: Tzwitter;
@@ -11,6 +13,7 @@ interface FeedProperty {
 
 const Feed = ({ tzwitter }: FeedProperty) => {
   const { publicKeyHash } = useParams() as { publicKeyHash: string };
+  const [feedKind, setFeedKind] = useState<'owned' | 'written'>('written');
   const navigate = useNavigate();
 
   const goToHome = () => {
@@ -22,7 +25,12 @@ const Feed = ({ tzwitter }: FeedProperty) => {
       <Menu current={`/feed/${publicKeyHash}`} navigate={navigate} />
       <div id="content">
         <FeedHeader author={publicKeyHash} goToHome={goToHome} />
-        <FeedContainer publicKeyHash={publicKeyHash} tzwitter={tzwitter} />
+        <FeedKind value={feedKind} onChange={setFeedKind} />
+        <FeedContainer
+          publicKeyHash={publicKeyHash}
+          tzwitter={tzwitter}
+          feedKind={feedKind}
+        />
       </div>
     </div>
   );

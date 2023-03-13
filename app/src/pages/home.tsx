@@ -33,7 +33,11 @@ const Home = ({ tzwitter }: HomeProperty) => {
           onSubmit={post}
           disabled={!tweet}
         />
-        <FeedContainer tzwitter={tzwitter} onAuthorClick={onAuthorClick} />
+        <FeedContainer
+          tzwitter={tzwitter}
+          onAuthorClick={onAuthorClick}
+          feedKind="all"
+        />
       </div>
     </div>
   );
