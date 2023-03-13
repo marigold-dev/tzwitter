@@ -28,11 +28,7 @@ const Account = () => {
 
   return (
     <div id="container">
-      <Menu
-        current={`/feed/${publicKeyHash}`}
-        navigate={navigate}
-        address={publicKeyHash}
-      />
+      <Menu current={`/feed/${publicKeyHash}`} navigate={navigate} />
       <div id="content">
         <FeedHeader author={publicKeyHash} goToHome={goToHome} />
         <FeedContainer publicKeyHash={publicKeyHash} tzwitter={tzwitter} />
