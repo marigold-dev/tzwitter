@@ -19,23 +19,22 @@ pub enum Error {
 
 impl ToString for Error {
     fn to_string(&self) -> String {
-        match self {
-            Error::SerdeJson(_) => "Cannot deserialize the message".to_string(),
-            Error::EndOfInbox => "End of the inbox".to_string(),
-            Error::NotATzwitterMessage => "Not a Tzwitter message".to_string(),
-            Error::FromUtf8Error(_) => "Cannot convert bytes to string".to_string(),
-            Error::Runtime(_) => "Runtime error, caused by host function".to_string(),
-            Error::Ed25519Compact(_) => "Cannot deserialize Ed25519".to_string(),
-            Error::InvalidSignature => "Invalid signature".to_string(),
-            Error::InvalidNonce => "Invalid nonce".to_string(),
-            Error::PathError(_) => "Invalid path".to_string(),
-            Error::StateDeserializarion => "State deserialization".to_string(),
-            Error::TweetNotFound => "Tweet not found".to_string(),
-            Error::TweetAlreadyLiked => {
-                "The tweet has already been liked by this account".to_string()
-            }
-            Error::NotOwner => "Not the owner of the tweet".to_string(),
-        }
+        let err = match self {
+            Error::SerdeJson(_) => "Cannot deserialize the message",
+            Error::EndOfInbox => "End of the inbox",
+            Error::NotATzwitterMessage => "Not a Tzwitter message",
+            Error::FromUtf8Error(_) => "Cannot convert bytes to string",
+            Error::Runtime(_) => "Runtime error, caused by host function",
+            Error::Ed25519Compact(_) => "Cannot deserialize Ed25519",
+            Error::InvalidSignature => "Invalid signature",
+            Error::InvalidNonce => "Invalid nonce",
+            Error::PathError(_) => "Invalid path",
+            Error::StateDeserializarion => "State deserialization",
+            Error::TweetNotFound => "Tweet not found",
+            Error::TweetAlreadyLiked => "The tweet has already been liked by this account",
+            Error::NotOwner => "Not the owner of the tweet",
+        };
+        err.to_string()
     }
 }
 
