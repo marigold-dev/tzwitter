@@ -67,8 +67,18 @@ fn account_likes_path(public_key_hash: &PublicKeyHash, tweet_id: &u64) -> Result
     account_field_path(public_key_hash, &format!("/likes/{}", tweet_id))
 }
 
+/// Path to keep track of owned tweets
+///
+/// /account/{tz1...}/tweets/{tweet_id}
+/// If the id is present in the subkey /tweets then the account owns the tweets
+///
+/// TODO: this structure is not the best one, it does not ensure that a tweet is owned by only one user.
+fn account_tweet_path(public_key_hash: &PublicKeyHash, tweet_id: &u64) -> Result<OwnedPath> {
+    account_field_path(public_key_hash, &format!("/tweets/{}", tweet_id))
+}
+
 ///  Check if a path exists
-fn exists<Host: RawRollupCore + Runtime>(host: &mut Host, path: &impl Path) -> Result<bool> {
+pub fn exists<Host: RawRollupCore + Runtime>(host: &mut Host, path: &impl Path) -> Result<bool> {
     let exists = Runtime::store_has(host, path)?
         .map(|_| true)
         .unwrap_or_default();
@@ -77,7 +87,7 @@ fn exists<Host: RawRollupCore + Runtime>(host: &mut Host, path: &impl Path) -> R
 
 /// Read an u64 from a given path
 /// If the data does not exist, it returns the default value of an u64
-fn read_u64<Host: RawRollupCore + Runtime>(
+pub fn read_u64<Host: RawRollupCore + Runtime>(
     host: &mut Host,
     path: &impl Path,
 ) -> Result<Option<u64>> {
@@ -252,4 +262,16 @@ pub fn is_liked<Host: RawRollupCore + Runtime>(
 ) -> Result<bool> {
     let path = account_likes_path(public_key_hash, tweet_id)?;
     exists(host, &path)
+}
+
+/// Add a tweet to an account to keep track of who own which tweets
+///
+/// TODO: maybe we want to implement a ledger
+pub fn add_tweet_to_account<Host: RawRollupCore + Runtime>(
+    host: &mut Host,
+    public_key_hash: &PublicKeyHash,
+    tweet_id: &u64,
+) -> Result<()> {
+    let path = account_tweet_path(&public_key_hash, tweet_id)?;
+    store_flag(host, &path)
 }

@@ -6,7 +6,10 @@ use crate::{
         nonce::Nonce,
         tweet::Tweet,
     },
-    storage::{increment_tweet_counter, is_liked, read_tweet, set_like_flag, store_tweet},
+    storage::{
+        add_tweet_to_account, increment_tweet_counter, is_liked, read_tweet, set_like_flag,
+        store_tweet,
+    },
 };
 use host::{
     rollup_core::{RawRollupCore, MAX_INPUT_MESSAGE_SIZE},
@@ -70,13 +73,16 @@ pub fn verify_nonce(inner: Inner, nonce: &Nonce) -> Result<Content> {
 
 /// Create a new tweet from the PostTweet request
 /// Save the tweet to the durable state
+/// And add a tweet entry to the user account
 pub fn create_tweet<Host: RawRollupCore + Runtime>(
     host: &mut Host,
+    account: &Account,
     post_tweet: PostTweet,
 ) -> Result<()> {
     let id = increment_tweet_counter(host)?;
     let tweet = Tweet::from(post_tweet);
     let _ = store_tweet(host, &id, &tweet)?;
+    let _ = add_tweet_to_account(host, &account.public_key_hash, &id)?;
     Ok(())
 }
 
