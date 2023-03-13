@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Tzwitter } from "../lib/tzwitter";
 import Account from "../lib/account";
 import Popup from "../components/popup";
+import FeedKind from "../components/FeedKind";
 import "./css/profile.css";
 
 interface ProfileProperty {
@@ -21,11 +22,16 @@ interface Form {
 const Profile = ({ tzwitter, account }: ProfileProperty) => {
     const navigate = useNavigate();
     const [form, setForm] = useState<Form | undefined>(undefined);
+    const [feedKind, setFeedKind] = useState<"owned" | "written">("owned");
+
     const isOpen = !!form;
     const onClose = () => setForm(undefined);
     const disabled = !(form && form.destination);
 
-    const onTweetClick = (tweetId: number) => () => setForm({ tweetId, destination: "" });
+    const onTweetClick = feedKind === "owned"
+        ? (tweetId: number) => () => setForm({ tweetId, destination: "" })
+        : undefined;
+
 
     const onDestinationChange = (evt: any) => setForm(form => {
         return form
@@ -41,12 +47,15 @@ const Profile = ({ tzwitter, account }: ProfileProperty) => {
         onClose()
     }
 
+    console.log(feedKind);
+
     return (
         <div id="container">
             <Menu current={"/profile"} navigate={navigate} />
             <div id="content">
                 <ProfileHeader />
-                <FeedContainer publicKeyHash={account.publicKeyHash} tzwitter={tzwitter} onTweetClick={onTweetClick} />
+                <FeedKind value={feedKind} onChange={setFeedKind} />
+                <FeedContainer publicKeyHash={account.publicKeyHash} tzwitter={tzwitter} onTweetClick={onTweetClick} feedKind={feedKind} />
             </div>
             <Popup isOpen={isOpen} onClose={onClose}>
                 <div id="transfer-title">Transfer a tweet</div>
