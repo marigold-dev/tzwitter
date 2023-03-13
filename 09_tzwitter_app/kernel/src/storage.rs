@@ -73,8 +73,16 @@ fn account_likes_path(public_key_hash: &PublicKeyHash, tweet_id: &u64) -> Result
 /// If the id is present in the subkey /tweets then the account owns the tweets
 ///
 /// TODO: this structure is not the best one, it does not ensure that a tweet is owned by only one user.
-fn account_tweet_path(public_key_hash: &PublicKeyHash, tweet_id: &u64) -> Result<OwnedPath> {
-    account_field_path(public_key_hash, &format!("/tweets/{}", tweet_id))
+fn account_owned_tweet_path(public_key_hash: &PublicKeyHash, tweet_id: &u64) -> Result<OwnedPath> {
+    account_field_path(public_key_hash, &format!("/tweets/owned/{}", tweet_id))
+}
+
+/// Path to keep track of the tweets written by a user
+fn account_written_tweet_path(
+    public_key_hash: &PublicKeyHash,
+    tweet_id: &u64,
+) -> Result<OwnedPath> {
+    account_field_path(public_key_hash, &format!("/tweets/written/{}", tweet_id))
 }
 
 ///  Check if a path exists
@@ -264,15 +272,23 @@ pub fn is_liked<Host: RawRollupCore + Runtime>(
     exists(host, &path)
 }
 
-/// Add a tweet to an account to keep track of who own which tweets
-///
-/// TODO: maybe we want to implement a ledger
-pub fn add_tweet_to_account<Host: RawRollupCore + Runtime>(
+/// Add a tweet in the "written" path of an account
+pub fn add_written_tweet_to_account<Host: RawRollupCore + Runtime>(
     host: &mut Host,
     public_key_hash: &PublicKeyHash,
     tweet_id: &u64,
 ) -> Result<()> {
-    let path = account_tweet_path(&public_key_hash, tweet_id)?;
+    let path = account_written_tweet_path(public_key_hash, tweet_id)?;
+    store_flag(host, &path)
+}
+
+/// Add a tweet in the "owned" path of an account
+pub fn add_owned_tweet_to_account<Host: RawRollupCore + Runtime>(
+    host: &mut Host,
+    public_key_hash: &PublicKeyHash,
+    tweet_id: &u64,
+) -> Result<()> {
+    let path = account_owned_tweet_path(public_key_hash, tweet_id)?;
     store_flag(host, &path)
 }
 
@@ -282,7 +298,7 @@ pub fn is_owner<Host: RawRollupCore + Runtime>(
     public_key_hash: &PublicKeyHash,
     tweet_id: &u64,
 ) -> Result<()> {
-    let path = account_tweet_path(public_key_hash, tweet_id)?;
+    let path = account_owned_tweet_path(public_key_hash, tweet_id)?;
     let is_present = exists(host, &path)?;
 
     match is_present {
@@ -299,7 +315,7 @@ pub fn transfer<Host: RawRollupCore + Runtime>(
     tweet_id: &u64,
     destination: &PublicKeyHash,
 ) -> Result<()> {
-    let from = account_tweet_path(public_key_hash, tweet_id)?;
-    let to = account_tweet_path(destination, tweet_id)?;
+    let from = account_owned_tweet_path(public_key_hash, tweet_id)?;
+    let to = account_owned_tweet_path(destination, tweet_id)?;
     host.store_move(&from, &to).map_err(Error::from)
 }
