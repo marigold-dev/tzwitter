@@ -4,7 +4,7 @@ import {
   createBrowserRouter,
 } from 'react-router-dom';
 import Home from './home';
-import Account from './account';
+import Feed from './feed';
 import Profile from './profile';
 import { InMemorySigner } from '@taquito/signer';
 import { Tzwitter } from '../lib/tzwitter';
@@ -47,7 +47,7 @@ const Index = () => {
     },
     {
       path: '/feed/:publicKeyHash',
-      element: <Account tzwitter={tzwitter} />,
+      element: <Feed tzwitter={tzwitter} />,
       errorElement: <Error />,
     },
     ...(account
