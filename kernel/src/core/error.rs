@@ -14,6 +14,7 @@ pub enum Error {
     StateDeserializarion,
     TweetNotFound,
     TweetAlreadyLiked,
+    NotOwner,
 }
 
 impl ToString for Error {
@@ -33,6 +34,7 @@ impl ToString for Error {
             Error::TweetAlreadyLiked => {
                 "The tweet has already been liked by this account".to_string()
             }
+            Error::NotOwner => "Not the owner of the tweet".to_string(),
         }
     }
 }

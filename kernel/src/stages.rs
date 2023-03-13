@@ -2,13 +2,13 @@ use crate::{
     constants::MAGIC_BYTE,
     core::{
         account::Account,
-        message::{Content, Inner, PostTweet},
+        message::{Content, Inner, PostTweet, Transfer},
         nonce::Nonce,
         tweet::Tweet,
     },
     storage::{
-        add_tweet_to_account, increment_tweet_counter, is_liked, read_tweet, set_like_flag,
-        store_tweet,
+        self, add_tweet_to_account, increment_tweet_counter, is_liked, is_owner, read_tweet,
+        set_like_flag, store_tweet,
     },
 };
 use host::{
@@ -107,4 +107,21 @@ pub fn like_tweet<Host: RawRollupCore + Runtime>(
             }
         }
     }
+}
+
+/// Transfer a tweet from an account to another one
+///
+/// Checks if the account parameter is owner of the tweet
+pub fn transfer_tweet<Host: RawRollupCore + Runtime>(
+    host: &mut Host,
+    account: &Account,
+    transfer: &Transfer,
+) -> Result<()> {
+    let Transfer {
+        tweet_id,
+        destination,
+    } = transfer;
+    let () = is_owner(host, &account.public_key_hash, tweet_id)?;
+    let () = storage::transfer(host, &account.public_key_hash, tweet_id, destination)?;
+    Ok(())
 }
