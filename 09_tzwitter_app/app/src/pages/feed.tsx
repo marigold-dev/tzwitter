@@ -5,11 +5,11 @@ import FeedHeader from '../components/FeedHeader';
 import Menu from '../components/menu';
 import { Tzwitter } from '../lib/tzwitter';
 
-interface AccountProperty {
+interface FeedProperty {
   tzwitter: Tzwitter;
 }
 
-const Account = ({ tzwitter }: AccountProperty) => {
+const Feed = ({ tzwitter }: FeedProperty) => {
   const { publicKeyHash } = useParams() as { publicKeyHash: string };
   const navigate = useNavigate();
 
@@ -28,4 +28,4 @@ const Account = ({ tzwitter }: AccountProperty) => {
   );
 };
 
-export default Account;
+export default Feed;
