@@ -5,19 +5,28 @@ interface FeedProperty {
   tweets: Array<Tweet>;
   onLike: (tweetId: number) => () => Promise<string>;
   onAuthorClick: (author: string) => () => void;
+  onTweetClick?: (tweetId: number) => () => void;
 }
 
-const Feed = ({ tweets, onLike, onAuthorClick }: FeedProperty) => {
+const Feed = ({
+  tweets,
+  onLike,
+  onAuthorClick,
+  onTweetClick,
+}: FeedProperty) => {
   return (
     <div>
-      {tweets.map((tweet) => (
-        <TweetComponent
-          key={tweet.id}
-          tweet={tweet}
-          onLike={onLike(tweet.id)}
-          onAuthorClick={onAuthorClick(tweet.author)}
-        />
-      ))}
+      {tweets.map((tweet) => {
+        return (
+          <TweetComponent
+            key={tweet.id}
+            tweet={tweet}
+            onLike={onLike(tweet.id)}
+            onAuthorClick={onAuthorClick(tweet.author)}
+            onTweetClick={onTweetClick && onTweetClick(tweet.id)}
+          />
+        );
+      })}
     </div>
   );
 };
