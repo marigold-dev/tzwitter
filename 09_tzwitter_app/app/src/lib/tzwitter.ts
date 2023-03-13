@@ -102,10 +102,14 @@ class Tzwitter {
 
   /**
    * Returns the ordered list of ids
+   *
+   * If an account is provided, only the tweets from this account is retrieved
    * @returns
    */
-  async getTweets(): Promise<Array<number>> {
-    const path = `/tweets`;
+  async getTweets(publicKeyHash?: string): Promise<Array<number>> {
+    const path = publicKeyHash
+      ? `/accounts/${publicKeyHash}/tweets`
+      : '/tweets';
     const ids = await this.rollupClient.getSubkeys(path);
     return ids
       .map((id: string) => Number.parseInt(id))
