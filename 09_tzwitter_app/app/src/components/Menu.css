@@ -1,0 +1,44 @@
+#menu {
+  display: flex;
+  flex-direction: column;
+  color: white;
+  margin-top: 12px;
+  margin-right: 12px;
+}
+
+#menu-tezos {
+  margin-bottom: 24px;
+}
+
+#menu-home,
+#menu-profile {
+  margin-bottom: 12px;
+}
+
+#menu-tezos,
+#menu-home,
+#menu-profile {
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  padding: 12px;
+  border-radius: 50px;
+  background-color: transparent;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+#menu-home > div,
+#menu-profile > div {
+  margin-left: 16px;
+  font-size: 20px;
+}
+
+#menu-home:hover,
+#menu-profile:hover {
+  background-color: rgba(231, 233, 234, 0.1);
+}
+
+.menu-entry-bold {
+  font-weight: 600;
+}
