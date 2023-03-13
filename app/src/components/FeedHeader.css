@@ -1,0 +1,22 @@
+.feed-header {
+  width: 100%;
+  color: white;
+  border-bottom: 1px solid rgb(62, 65, 68);
+  padding: 24px;
+  box-sizing: border-box;
+  display: flex;
+}
+
+.feed-header-go-home {
+  color: white;
+  font-weight: 600;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.feed-header-author {
+  color: white;
+  font-size: 24px;
+  font-weight: 600;
+  margin-left: 32px;
+}
