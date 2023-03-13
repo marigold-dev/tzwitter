@@ -12,7 +12,9 @@ mod stages;
 mod storage;
 
 use crate::core::error::*;
-use stages::{create_tweet, like_tweet, read_input, verify_nonce, verify_signature};
+use stages::{
+    create_tweet, like_tweet, read_input, transfer_tweet, verify_nonce, verify_signature,
+};
 
 /// A step is processing only one message from the inbox
 ///
@@ -41,6 +43,7 @@ fn step<Host: RawRollupCore>(host: &mut Host) -> Result<()> {
     let () = match content {
         Content::PostTweet(post_tweet) => create_tweet(host, &account, post_tweet)?,
         Content::LikeTweet(tweet_id) => like_tweet(host, &account, &tweet_id)?,
+        Content::Transfer(transfer) => transfer_tweet(host, &account, &transfer)?,
     };
 
     Ok(())
@@ -65,6 +68,7 @@ fn execute<Host: RawRollupCore>(host: &mut Host) -> Result<()> {
         Err(Error::StateDeserializarion) => execute(host),
         Err(Error::TweetNotFound) => execute(host),
         Err(Error::TweetAlreadyLiked) => execute(host),
+        Err(Error::NotOwner) => execute(host),
     }
 }
 
@@ -108,6 +112,12 @@ mod tests {
         assert_eq!(expected, value);
     }
 
+    fn assert_not_exists<Host: RawRollupCore + Runtime>(host: &mut Host, path: &str) {
+        let path = RefPath::assert_from(path.as_bytes());
+        let is_present = exists(host, &path).unwrap();
+        assert!(!is_present)
+    }
+
     /// Valid input that represent the content "Hello world" and the nonce 0
     fn input_1() -> Vec<u8> {
         let input = "7b22706b6579223a7b2245643235353139223a226564706b75444d556d375935337770346778654c425875694168585a724c6e385842315238336b737676657348384c7038626d43664b227d2c227369676e6174757265223a7b2245643235353139223a226564736967746658484337537875433378754453423563624a426a786b514672656f6e38584368526750446f674547355662506542545250794341513156586a75734e4a375537456557674d44703679634159473334774851665667726d47454a6974227d2c22696e6e6572223a7b226e6f6e6365223a312c22636f6e74656e74223a7b22506f73745477656574223a7b22617574686f72223a7b22547a31223a22747a315146443957714c575a6d6d4175716e6e545050556a666175697459455764736876227d2c22636f6e74656e74223a2248656c6c6f20776f726c64227d7d7d7d";
@@ -131,6 +141,12 @@ mod tests {
 
     fn input_like_2() -> Vec<u8> {
         let input = "7b22706b6579223a7b2245643235353139223a226564706b75444d556d375935337770346778654c425875694168585a724c6e385842315238336b737676657348384c7038626d43664b227d2c227369676e6174757265223a7b2245643235353139223a22656473696774775a6d6376566470575361696836646a5057526172645668723154614b32786275646a7937686d7a6a65456e4b77766747346d50676455573478764254714452584e5348596f6a5973395a796d5968565469586d667a67323778624846227d2c22696e6e6572223a7b226e6f6e6365223a332c22636f6e74656e74223a7b224c696b655477656574223a307d7d7d";
+        let msg = format!("01{:02x}{}", MAGIC_BYTE, input);
+        hex::decode(msg).unwrap()
+    }
+
+    fn input_transfer() -> Vec<u8> {
+        let input = "7b22706b6579223a7b2245643235353139223a226564706b75444d556d375935337770346778654c425875694168585a724c6e385842315238336b737676657348384c7038626d43664b227d2c227369676e6174757265223a7b2245643235353139223a226564736967746a616a43534e5548464a6f6f775978756e566b5a53644478655a7459687a5756444d617359785365315a59625650444e4b4d4157574152454c52734244624242774d646f786f36676e36766639374e74413661745232637656746f7a37227d2c22696e6e6572223a7b226e6f6e6365223a322c22636f6e74656e74223a7b225472616e73666572223a7b2264657374696e6174696f6e223a7b22547a31223a22747a3154477536544e354753657a326e645858654458364c675544764c7a504c71675956227d2c2274776565745f6964223a307d7d7d7d";
         let msg = format!("01{:02x}{}", MAGIC_BYTE, input);
         hex::decode(msg).unwrap()
     }
@@ -235,5 +251,32 @@ mod tests {
         assert!(res_3.is_err());
 
         assert_u64(&mut host, "/tweets/0/likes", Some(1));
+    }
+
+    #[test]
+    fn transfer_tweet() {
+        let state = HostState::default();
+        let input_1 = input_1();
+        let input_2 = input_transfer();
+        let inputs = [input_1.as_slice(), input_2.as_slice()].into_iter();
+
+        let mut host = MockHost::from(state);
+        host.as_mut().set_ready_for_input(0);
+        host.as_mut().add_next_inputs(0, inputs);
+
+        let res_1 = step(&mut host);
+        let res_2 = step(&mut host);
+
+        assert!(res_1.is_ok());
+        assert!(res_2.is_ok());
+
+        assert_not_exists(
+            &mut host,
+            "/accounts/tz1QFD9WqLWZmmAuqnnTPPUjfauitYEWdshv/tweets/0",
+        );
+        assert_exist(
+            &mut host,
+            "/accounts/tz1TGu6TN5GSez2ndXXeDX6LgUDvLzPLqgYV/tweets/0",
+        );
     }
 }

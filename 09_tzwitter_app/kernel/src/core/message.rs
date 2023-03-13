@@ -12,9 +12,16 @@ pub struct PostTweet {
 }
 
 #[derive(Deserialize)]
+pub struct Transfer {
+    pub tweet_id: u64,
+    pub destination: PublicKeyHash,
+}
+
+#[derive(Deserialize)]
 pub enum Content {
     PostTweet(PostTweet),
     LikeTweet(u64),
+    Transfer(Transfer),
 }
 
 #[derive(Deserialize)]
@@ -67,6 +74,15 @@ impl Inner {
             }
             Content::LikeTweet(tweet_id) => {
                 let string = format!("{}{}", nonce.to_string(), tweet_id);
+                Blake2b::from(string.as_bytes())
+            }
+            Content::Transfer(transfer) => {
+                let string = format!(
+                    "{}{}{}",
+                    nonce.to_string(),
+                    transfer.destination.to_string(),
+                    transfer.tweet_id
+                );
                 Blake2b::from(string.as_bytes())
             }
         }

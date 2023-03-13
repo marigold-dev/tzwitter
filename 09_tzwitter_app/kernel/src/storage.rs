@@ -275,3 +275,31 @@ pub fn add_tweet_to_account<Host: RawRollupCore + Runtime>(
     let path = account_tweet_path(&public_key_hash, tweet_id)?;
     store_flag(host, &path)
 }
+
+/// Checks if the user is owner of the tweet
+pub fn is_owner<Host: RawRollupCore + Runtime>(
+    host: &mut Host,
+    public_key_hash: &PublicKeyHash,
+    tweet_id: &u64,
+) -> Result<()> {
+    let path = account_tweet_path(public_key_hash, tweet_id)?;
+    let is_present = exists(host, &path)?;
+
+    match is_present {
+        true => Ok(()),
+        false => Err(Error::NotOwner),
+    }
+}
+
+/// Transfer a tweet from a user to another one
+/// Does not check if the user owns the tweet
+pub fn transfer<Host: RawRollupCore + Runtime>(
+    host: &mut Host,
+    public_key_hash: &PublicKeyHash,
+    tweet_id: &u64,
+    destination: &PublicKeyHash,
+) -> Result<()> {
+    let from = account_tweet_path(public_key_hash, tweet_id)?;
+    let to = account_tweet_path(destination, tweet_id)?;
+    host.store_move(&from, &to).map_err(Error::from)
+}
