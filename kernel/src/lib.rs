@@ -169,7 +169,11 @@ mod tests {
         assert_u64(&mut host, "/tweets/0/likes", Some(0));
         assert_exist(
             &mut host,
-            "/accounts/tz1QFD9WqLWZmmAuqnnTPPUjfauitYEWdshv/tweets/0",
+            "/accounts/tz1QFD9WqLWZmmAuqnnTPPUjfauitYEWdshv/tweets/owned/0",
+        );
+        assert_exist(
+            &mut host,
+            "/accounts/tz1QFD9WqLWZmmAuqnnTPPUjfauitYEWdshv/tweets/written/0",
         );
     }
 
@@ -272,11 +276,19 @@ mod tests {
 
         assert_not_exists(
             &mut host,
-            "/accounts/tz1QFD9WqLWZmmAuqnnTPPUjfauitYEWdshv/tweets/0",
+            "/accounts/tz1QFD9WqLWZmmAuqnnTPPUjfauitYEWdshv/tweets/owned/0",
         );
         assert_exist(
             &mut host,
-            "/accounts/tz1TGu6TN5GSez2ndXXeDX6LgUDvLzPLqgYV/tweets/0",
+            "/accounts/tz1QFD9WqLWZmmAuqnnTPPUjfauitYEWdshv/tweets/written/0",
+        );
+        assert_exist(
+            &mut host,
+            "/accounts/tz1TGu6TN5GSez2ndXXeDX6LgUDvLzPLqgYV/tweets/owned/0",
+        );
+        assert_not_exists(
+            &mut host,
+            "/accounts/tz1TGu6TN5GSez2ndXXeDX6LgUDvLzPLqgYV/tweets/writte/0",
         );
     }
 }
