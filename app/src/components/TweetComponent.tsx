@@ -4,14 +4,15 @@ import "./TweetComponent.css";
 interface TweetProperty {
     tweet: Tweet,
     onLike: () => Promise<string>;
+    onAuthorClick: () => void,
 }
 
-const TweetComponent = ({ tweet, onLike }: TweetProperty) => {
+const TweetComponent = ({ tweet, onLike, onAuthorClick }: TweetProperty) => {
     const { id, author, content, likes } = tweet;
     return (
         <div className="tweet">
             <div className="tweet-header">
-                <div className="tweet-author">{author}</div>
+                <div className="tweet-author" onClick={onAuthorClick}>{author}</div>
                 <span className="tweet-header-separator">·</span>
                 <div className="tweet-id">{id}</div>
             </div>
