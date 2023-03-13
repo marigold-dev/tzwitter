@@ -68,15 +68,24 @@
   padding: 4px;
   border-radius: 8px;
   transition: background-color 0.15s, color 0.15s;
+  border: none;
+  background-color: transparent;
 }
 
-.tweet-likes:hover {
-  cursor: pointer;
+.tweet-likes:hover:disabled {
   background-color: rgb(249, 24, 128, 0.2);
   color: rgb(249, 24, 128);
   filter: invert(20%) sepia(57%) saturate(6692%) hue-rotate(322deg)
     brightness(103%) contrast(95%);
   /* To change the color of the svg with css*/
+}
+
+.tweet-likes:hover:enabled {
+  cursor: pointer;
+  background-color: rgb(249, 24, 128, 0.2);
+  color: rgb(249, 24, 128);
+  filter: invert(20%) sepia(57%) saturate(6692%) hue-rotate(322deg)
+    brightness(103%) contrast(95%);
 }
 
 .tweet-likes-icon {
