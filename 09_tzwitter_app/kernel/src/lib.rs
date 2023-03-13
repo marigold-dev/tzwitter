@@ -39,7 +39,7 @@ fn step<Host: RawRollupCore>(host: &mut Host) -> Result<()> {
 
     // Interpret the message
     let () = match content {
-        Content::PostTweet(post_tweet) => create_tweet(host, post_tweet)?,
+        Content::PostTweet(post_tweet) => create_tweet(host, &account, post_tweet)?,
         Content::LikeTweet(tweet_id) => like_tweet(host, &account, &tweet_id)?,
     };
 
@@ -81,14 +81,32 @@ kernel_entry!(entry);
 
 #[cfg(test)]
 mod tests {
-    use host::runtime::Runtime;
+    use host::{path::RefPath, rollup_core::RawRollupCore, runtime::Runtime};
     use mock_runtime::{host::MockHost, state::HostState};
 
     use crate::{
         constants::MAGIC_BYTE,
         step,
-        storage::{read_tweet, TWEETS},
+        storage::{exists, read_tweet, read_u64, TWEETS},
     };
+
+    /// Assert a path exists in the storage
+    fn assert_exist<Host: RawRollupCore + Runtime>(host: &mut Host, path: &str) {
+        let path = RefPath::assert_from(path.as_bytes());
+        let is_present = exists(host, &path).unwrap();
+        assert!(is_present);
+    }
+
+    /// Assert a u64 value in the storage
+    fn assert_u64<Host: RawRollupCore + Runtime>(
+        host: &mut Host,
+        path: &str,
+        expected: Option<u64>,
+    ) {
+        let path = RefPath::assert_from(path.as_bytes());
+        let value = read_u64(host, &path).unwrap();
+        assert_eq!(expected, value);
+    }
 
     /// Valid input that represent the content "Hello world" and the nonce 0
     fn input_1() -> Vec<u8> {
@@ -128,7 +146,15 @@ mod tests {
         host.as_mut().add_next_inputs(0, inputs);
 
         let res = step(&mut host);
-        assert!(res.is_ok())
+
+        assert!(res.is_ok());
+
+        assert_exist(&mut host, "/tweets/0");
+        assert_u64(&mut host, "/tweets/0/likes", Some(0));
+        assert_exist(
+            &mut host,
+            "/accounts/tz1QFD9WqLWZmmAuqnnTPPUjfauitYEWdshv/tweets/0",
+        );
     }
 
     #[test]
