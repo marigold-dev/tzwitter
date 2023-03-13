@@ -4,6 +4,7 @@ import { Tzwitter } from '../lib/tzwitter';
 import FeedContainer from '../containers/Feed';
 import { useNavigate, useParams } from 'react-router-dom';
 import FeedHeader from '../components/FeedHeader';
+import Menu from '../components/menu';
 
 const secret = 'edsk3a5SDDdMWw3Q5hPiJwDXUosmZMTuKQkriPqY6UqtSfdLifpZbB';
 const signer = new InMemorySigner(secret);
@@ -27,6 +28,11 @@ const Account = () => {
 
   return (
     <div id="container">
+      <Menu
+        current={`/feed/${publicKeyHash}`}
+        navigate={navigate}
+        address={publicKeyHash}
+      />
       <div id="content">
         <FeedHeader author={publicKeyHash} goToHome={goToHome} />
         <FeedContainer publicKeyHash={publicKeyHash} tzwitter={tzwitter} />
