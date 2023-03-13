@@ -85,19 +85,23 @@ class Tzwitter {
    * @returns the Tweet as a promise
    */
   async getTweet(tweetId: number): Promise<Tweet> {
+    const publicKeyHash = await this.signer.publicKeyHash();
+
     const authorPath = `/tweets/${tweetId}/author`;
     const contentPath = `/tweets/${tweetId}/content`;
     const likesPath = `/tweets/${tweetId}/likes`;
+    const isLikedPath = `/accounts/${publicKeyHash}/likes/${tweetId}`;
 
     const authorBytes = await this.rollupClient.getState(authorPath);
     const contentBytes = await this.rollupClient.getState(contentPath);
     const likesBytes = await this.rollupClient.getState(likesPath);
+    const isLiked = await this.rollupClient.getState(isLikedPath);
 
     const author = Buffer.from(authorBytes, 'hex').toString('utf-8');
     const content = Buffer.from(contentBytes, 'hex').toString('utf-8');
     const likes = Number('0x' + likesBytes);
 
-    return { id: tweetId, author, content, likes };
+    return { id: tweetId, author, content, likes, isLiked };
   }
 
   /**
