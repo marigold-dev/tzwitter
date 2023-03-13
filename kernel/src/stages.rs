@@ -7,8 +7,8 @@ use crate::{
         tweet::Tweet,
     },
     storage::{
-        self, add_tweet_to_account, increment_tweet_counter, is_liked, is_owner, read_tweet,
-        set_like_flag, store_tweet,
+        self, add_owned_tweet_to_account, add_written_tweet_to_account, increment_tweet_counter,
+        is_liked, is_owner, read_tweet, set_like_flag, store_tweet,
     },
 };
 use host::{
@@ -82,7 +82,8 @@ pub fn create_tweet<Host: RawRollupCore + Runtime>(
     let id = increment_tweet_counter(host)?;
     let tweet = Tweet::from(post_tweet);
     let _ = store_tweet(host, &id, &tweet)?;
-    let _ = add_tweet_to_account(host, &account.public_key_hash, &id)?;
+    let _ = add_owned_tweet_to_account(host, &account.public_key_hash, &id)?;
+    let _ = add_written_tweet_to_account(host, &account.public_key_hash, &id)?;
     Ok(())
 }
 
