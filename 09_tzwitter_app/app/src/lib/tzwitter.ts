@@ -101,14 +101,42 @@ class Tzwitter {
   }
 
   /**
-   * Returns the ordered list of ids
-   *
-   * If an account is provided, only the tweets from this account is retrieved
+   * Retrieves all the tweets
    * @returns
    */
-  async getTweets(publicKeyHash?: string): Promise<Array<number>> {
+  async getTweets(): Promise<Array<number>> {
+    const path = '/tweets';
+    const ids = await this.rollupClient.getSubkeys(path);
+    return ids
+      .map((id: string) => Number.parseInt(id))
+      .sort()
+      .reverse();
+  }
+
+  /**
+   * Get tweets owned by the given public key
+   * @param publicKeyHash
+   * @returns the id list of owned tweets
+   */
+  async getOwnedTweets(publicKeyHash: string): Promise<Array<number>> {
     const path = publicKeyHash
-      ? `/accounts/${publicKeyHash}/tweets`
+      ? `/accounts/${publicKeyHash}/tweets/owned`
+      : '/tweets';
+    const ids = await this.rollupClient.getSubkeys(path);
+    return ids
+      .map((id: string) => Number.parseInt(id))
+      .sort()
+      .reverse();
+  }
+
+  /**
+   * Get tweets written by the given public key
+   * @param publicKeyHash
+   * @returns the id list of written tweets
+   */
+  async getWrittenTweets(publicKeyHash: string): Promise<Array<number>> {
+    const path = publicKeyHash
+      ? `/accounts/${publicKeyHash}/tweets/written`
       : '/tweets';
     const ids = await this.rollupClient.getSubkeys(path);
     return ids

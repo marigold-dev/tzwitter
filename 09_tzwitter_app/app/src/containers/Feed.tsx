@@ -4,11 +4,14 @@ import { Tzwitter } from '../lib/tzwitter';
 import NumberOfTweets from '../components/NumberOfTweets';
 import Feed from '../components/Feed';
 
+type FeedKind = 'owned' | 'written' | 'all';
+
 interface FeedProperty {
   tzwitter: Tzwitter;
   publicKeyHash?: string;
   onTweetClick?: (tweetId: number) => () => void;
   onAuthorClick?: (author: string) => () => void;
+  feedKind: FeedKind;
 }
 
 const FeedContainer = ({
@@ -16,12 +19,22 @@ const FeedContainer = ({
   publicKeyHash,
   onTweetClick,
   onAuthorClick,
+  feedKind,
 }: FeedProperty) => {
   const [tweets, setTweets] = useState<Array<Tweet>>([]);
 
   useEffect(() => {
+    console.log(tzwitter.getOwnedTweets);
+
+    const getTweets = () =>
+      feedKind === 'owned' && publicKeyHash
+        ? tzwitter.getOwnedTweets(publicKeyHash)
+        : feedKind === 'written' && publicKeyHash
+        ? tzwitter.getWrittenTweets(publicKeyHash)
+        : tzwitter.getTweets();
+
     const retrieveTweets = async () => {
-      const tzwIds = await tzwitter.getTweets(publicKeyHash);
+      const tzwIds = await getTweets();
       const tweets = await Promise.all(
         tzwIds.map((id) => {
           return tzwitter.getTweet(id);
@@ -34,7 +47,7 @@ const FeedContainer = ({
     return () => {
       clearInterval(id);
     };
-  }, [publicKeyHash, tzwitter]);
+  }, [feedKind, publicKeyHash, tzwitter]);
 
   const onLike = (tweetId: number) => async () => {
     return await tzwitter.like(tweetId);
