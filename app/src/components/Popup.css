@@ -1,0 +1,35 @@
+#popup-blur {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.3);
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+#popup {
+  position: absolute;
+  max-width: 60ch;
+  top: 100px;
+  width: 100%;
+  background-color: red;
+  border-radius: 16px;
+  padding: 16px;
+  background-color: black;
+  color: white;
+}
+
+#popup-header-cross {
+  padding: 4px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+#popup-header-cross:hover {
+  background-color: rgba(231, 233, 234, 0.1);
+}
+
+#popup-content {
+  padding-left: 4px;
+  padding-right: 4px;
+  box-sizing: border-box;
+}

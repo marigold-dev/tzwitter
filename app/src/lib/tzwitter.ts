@@ -158,6 +158,49 @@ class Tzwitter {
     const payload = Buffer.from(strRequest).toString('hex');
     return this.rollupClient.send(this.magicByte + payload);
   }
+
+  async transferTweet(tweetId: number, destination: string): Promise<string> {
+    const publicKeyHash = await this.signer.publicKeyHash();
+    // Compute the next nonce of the user
+    const nonceBytes = await this.rollupClient.getState(
+      `/accounts/${publicKeyHash}/nonce`,
+    );
+    const nonce = Number.parseInt(nonceBytes || '00000000', 16) + 1;
+
+    // Hash the payload to sign it later
+    const strNonce = nonce.toString(16).padStart(8, '0');
+    const publicKey = await this.signer.publicKey();
+    const toHash = `${strNonce}${destination}${tweetId}`;
+    const hash = blake2bHex(toHash, undefined, 32);
+
+    // Sign the payload
+    const { prefixSig } = await this.signer.sign(hash);
+    // Construct the request
+    const request = {
+      pkey: {
+        Ed25519: publicKey,
+      },
+      signature: {
+        Ed25519: prefixSig,
+      },
+      inner: {
+        nonce: nonce,
+        content: {
+          Transfer: {
+            destination: {
+              Tz1: destination,
+            },
+            tweet_id: tweetId,
+          },
+        },
+      },
+    };
+    const strRequest = JSON.stringify(request);
+    const payload = Buffer.from(strRequest).toString('hex');
+    console.log(payload);
+    // Add the magic byte and send the payload
+    return this.rollupClient.send(this.magicByte + payload);
+  }
 }
 
 export { Tzwitter };
