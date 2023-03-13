@@ -23,7 +23,7 @@ const Home = () => {
   const [tweet, setTweet] = useState('');
   const navigate = useNavigate();
 
-  const [address, setAddress] = useState('');
+  const [, setAddress] = useState('');
   useEffect(() => {
     signer.publicKeyHash().then(setAddress);
   }, []);
@@ -35,7 +35,7 @@ const Home = () => {
 
   return (
     <div id="container">
-      <Menu current={'/'} navigate={navigate} address={address} />
+      <Menu current={'/'} navigate={navigate} />
       <div id="content">
         <Input
           value={tweet}

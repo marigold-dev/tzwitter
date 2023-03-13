@@ -12,7 +12,7 @@ type Entry = {
   link: string;
 };
 
-const createMenu = (current: string, address: string): Array<Entry> =>
+const createMenu = (current: string): Array<Entry> =>
   [
     {
       id: 'menu-tezos',
@@ -52,11 +52,10 @@ const createMenu = (current: string, address: string): Array<Entry> =>
 interface MenyType {
   current: string;
   navigate: (path: string) => void;
-  address: string;
 }
 
-const Menu = ({ current, address, navigate }: MenyType) => {
-  const menuEntries = createMenu(current, address);
+const Menu = ({ current, navigate }: MenyType) => {
+  const menuEntries = createMenu(current);
 
   return (
     <div id="menu">
