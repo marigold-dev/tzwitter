@@ -3,21 +3,21 @@ import { Tweet } from '../lib/tweet';
 import { Tzwitter } from '../lib/tzwitter';
 import NumberOfTweets from '../components/NumberOfTweets';
 import Feed from '../components/Feed';
-import { useNavigate } from 'react-router-dom';
 
 interface FeedProperty {
   tzwitter: Tzwitter;
   publicKeyHash?: string;
   onTweetClick?: (tweetId: number) => () => void;
+  onAuthorClick?: (author: string) => () => void;
 }
 
 const FeedContainer = ({
   tzwitter,
   publicKeyHash,
   onTweetClick,
+  onAuthorClick,
 }: FeedProperty) => {
   const [tweets, setTweets] = useState<Array<Tweet>>([]);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const retrieveTweets = async () => {
@@ -38,10 +38,6 @@ const FeedContainer = ({
 
   const onLike = (tweetId: number) => async () => {
     return await tzwitter.like(tweetId);
-  };
-
-  const onAuthorClick = (author: string) => () => {
-    navigate(`/feed/${author}`);
   };
 
   return (
