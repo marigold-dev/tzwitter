@@ -5,12 +5,23 @@ interface TweetProperty {
   tweet: Tweet;
   onLike: () => Promise<string>;
   onAuthorClick: () => void;
+  onTweetClick?: () => void;
 }
 
-const TweetComponent = ({ tweet, onLike, onAuthorClick }: TweetProperty) => {
+const TweetComponent = ({
+  tweet,
+  onLike,
+  onAuthorClick,
+  onTweetClick,
+}: TweetProperty) => {
   const { id, author, content, likes } = tweet;
+  const className: string = [
+    'tweet',
+    ...(onTweetClick ? ['clickable-tweet'] : []),
+  ].join(' ');
+
   return (
-    <div className="tweet">
+    <div className={className} onClick={onTweetClick}>
       <div className="tweet-header">
         <div className="tweet-author" onClick={onAuthorClick}>
           {author}

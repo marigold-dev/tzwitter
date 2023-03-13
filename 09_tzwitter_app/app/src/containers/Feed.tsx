@@ -8,9 +8,14 @@ import { useNavigate } from 'react-router-dom';
 interface FeedProperty {
   tzwitter: Tzwitter;
   publicKeyHash?: string;
+  onTweetClick?: (tweetId: number) => () => void;
 }
 
-const FeedContainer = ({ tzwitter, publicKeyHash }: FeedProperty) => {
+const FeedContainer = ({
+  tzwitter,
+  publicKeyHash,
+  onTweetClick,
+}: FeedProperty) => {
   const [tweets, setTweets] = useState<Array<Tweet>>([]);
   const navigate = useNavigate();
 
@@ -42,7 +47,12 @@ const FeedContainer = ({ tzwitter, publicKeyHash }: FeedProperty) => {
   return (
     <>
       <NumberOfTweets number={tweets.length} />
-      <Feed tweets={tweets} onLike={onLike} onAuthorClick={onAuthorClick} />
+      <Feed
+        tweets={tweets}
+        onLike={onLike}
+        onAuthorClick={onAuthorClick}
+        onTweetClick={onTweetClick}
+      />
     </>
   );
 };

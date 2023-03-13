@@ -13,6 +13,10 @@ interface ProfileProperty {
 const Profile = ({ tzwitter, account }: ProfileProperty) => {
   const navigate = useNavigate();
 
+  const onTweetClick = (tweetId: number) => () => {
+    console.log('TODO: open popup');
+  };
+
   return (
     <div id="container">
       <Menu current={'/profile'} navigate={navigate} />
@@ -21,6 +25,7 @@ const Profile = ({ tzwitter, account }: ProfileProperty) => {
         <FeedContainer
           publicKeyHash={account.publicKeyHash}
           tzwitter={tzwitter}
+          onTweetClick={onTweetClick}
         />
       </div>
     </div>
