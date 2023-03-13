@@ -1,36 +1,27 @@
 import { useNavigate } from 'react-router-dom';
 import Menu from '../components/menu';
 import ProfileHeader from '../components/ProfileHeader';
-import { InMemorySigner } from '@taquito/signer';
 import FeedContainer from '../containers/Feed';
 import { Tzwitter } from '../lib/tzwitter';
-import { useEffect, useState } from 'react';
+import Account from '../lib/account';
 
-const secret = 'edsk3a5SDDdMWw3Q5hPiJwDXUosmZMTuKQkriPqY6UqtSfdLifpZbB';
-const signer = new InMemorySigner(secret);
-const TEZOS_URL = 'http://localhost:18731';
-const ROLLUP_URL = 'http://localhost:8932';
-const tzwitter = new Tzwitter({
-  signer,
-  tezosUrl: TEZOS_URL,
-  rollupUrl: ROLLUP_URL,
-  verbose: true,
-});
+interface ProfileProperty {
+  tzwitter: Tzwitter;
+  account: Account;
+}
 
-const Profile = () => {
+const Profile = ({ tzwitter, account }: ProfileProperty) => {
   const navigate = useNavigate();
-
-  const [address, setAddress] = useState('');
-  useEffect(() => {
-    signer.publicKeyHash().then(setAddress);
-  }, []);
 
   return (
     <div id="container">
       <Menu current={'/profile'} navigate={navigate} />
       <div id="content">
         <ProfileHeader />
-        <FeedContainer publicKeyHash={address} tzwitter={tzwitter} />
+        <FeedContainer
+          publicKeyHash={account.publicKeyHash}
+          tzwitter={tzwitter}
+        />
       </div>
     </div>
   );
