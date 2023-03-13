@@ -29,12 +29,12 @@ const TweetComponent = ({ tweet, onLike, onAuthorClick, onTweetClick }: TweetPro
             </div>
             <div className="tweet-content">{content}</div>
             <div className="tweet-footer">
-                <div className="tweet-likes" onClick={onLike} >
-                    <img className="tweet-likes-icon" src={"/heart.svg"} />
+                <button className={"tweet-likes"} onClick={onLike} disabled={tweet.isLiked}>
+                    <img className="tweet-likes-icon" src={tweet.isLiked ? "/heart-fill.svg" : "/heart.svg"} />
                     <span>
                         {likes}
                     </span>
-                </div>
+                </button>
             </div>
         </div>
     );
