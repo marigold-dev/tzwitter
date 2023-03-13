@@ -30,7 +30,7 @@ const Home = () => {
 
     return (
         <div id="container">
-            <Menu current={"/"} navigate={navigate} address={address} />
+            <Menu current={"/"} navigate={navigate} />
             <div id="content">
                 <Input value={tweet} onChange={(evt) => setTweet(evt.target.value)} onSubmit={post} disabled={!tweet} />
                 <FeedContainer tzwitter={tzwitter} />
