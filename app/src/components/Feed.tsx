@@ -4,7 +4,7 @@ import TweetComponent from "./TweetComponent";
 interface FeedProperty {
     tweets: Array<Tweet>,
     onLike: (tweetId: number) => () => Promise<string>,
-    onAuthorClick: (author: string) => () => void,
+    onAuthorClick?: (author: string) => () => void,
     onTweetClick?: ((tweetId: number) => () => void),
 }
 
@@ -16,7 +16,7 @@ const Feed = ({ tweets, onLike, onAuthorClick, onTweetClick }: FeedProperty) => 
                     key={tweet.id}
                     tweet={tweet}
                     onLike={onLike(tweet.id)}
-                    onAuthorClick={onAuthorClick(tweet.author)}
+                    onAuthorClick={onAuthorClick && onAuthorClick(tweet.author)}
                     onTweetClick={onTweetClick && onTweetClick(tweet.id)}
                 />;
             })}

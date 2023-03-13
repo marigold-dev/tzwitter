@@ -20,12 +20,16 @@ const Home = ({ tzwitter }: HomeProperty) => {
         setTweet("");
     }
 
+    const onAuthorClick = (author: string) => () => {
+        navigate(`/feed/${author}`);
+    }
+
     return (
         <div id="container">
             <Menu current={"/"} navigate={navigate} />
             <div id="content">
                 <Input value={tweet} onChange={(evt) => setTweet(evt.target.value)} onSubmit={post} disabled={!tweet} />
-                <FeedContainer tzwitter={tzwitter} />
+                <FeedContainer tzwitter={tzwitter} onAuthorClick={onAuthorClick} />
             </div>
         </div>
     );
