@@ -87,7 +87,7 @@ mod tests {
     use crate::{
         constants::MAGIC_BYTE,
         step,
-        storage::{exists, read_tweet, read_u64, TWEETS},
+        storage::{exists, read_u64},
     };
 
     /// Assert a path exists in the storage
@@ -183,13 +183,15 @@ mod tests {
         host.as_mut().set_ready_for_input(0);
         host.as_mut().add_next_inputs(0, inputs);
 
-        let _ = step(&mut host);
-        let number_of_tweets_1 = Runtime::store_count_subkeys(&host, &TWEETS).unwrap();
+        let res_1 = step(&mut host);
+        let res_2 = step(&mut host);
 
-        let _ = step(&mut host);
-        let number_of_tweets_2 = Runtime::store_count_subkeys(&host, &TWEETS).unwrap();
+        assert!(res_1.is_ok());
+        assert!(res_2.is_ok());
 
-        assert_eq!(number_of_tweets_1 + 3, number_of_tweets_2);
+        assert_u64(&mut host, "/constants/tweet-counter", Some(2));
+        assert_exist(&mut host, "/tweets/0");
+        assert_exist(&mut host, "/tweets/1");
     }
 
     #[test]
@@ -203,14 +205,13 @@ mod tests {
         host.as_mut().set_ready_for_input(0);
         host.as_mut().add_next_inputs(0, inputs);
 
-        let _ = step(&mut host);
+        let res_1 = step(&mut host);
         let res_2 = step(&mut host);
 
+        assert!(res_1.is_ok());
         assert!(res_2.is_ok());
 
-        let tweet = read_tweet(&mut host, &0).unwrap().unwrap();
-        assert_eq!(tweet.likes, 1);
-        assert!(true)
+        assert_u64(&mut host, "/tweets/0/likes", Some(1));
     }
 
     #[test]
@@ -225,11 +226,14 @@ mod tests {
         host.as_mut().set_ready_for_input(0);
         host.as_mut().add_next_inputs(0, inputs);
 
-        let _ = step(&mut host);
-        let res_like_1 = step(&mut host);
-        let res_like_2 = step(&mut host);
+        let res_1 = step(&mut host);
+        let res_2 = step(&mut host);
+        let res_3 = step(&mut host);
 
-        assert!(res_like_1.is_ok());
-        assert!(res_like_2.is_err());
+        assert!(res_1.is_ok());
+        assert!(res_2.is_ok());
+        assert!(res_3.is_err());
+
+        assert_u64(&mut host, "/tweets/0/likes", Some(1));
     }
 }
