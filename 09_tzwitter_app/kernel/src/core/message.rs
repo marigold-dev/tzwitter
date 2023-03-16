@@ -59,6 +59,11 @@ impl Message {
     pub fn inner(&self) -> &Inner {
         &self.inner
     }
+
+    /// Returns the hash of the message
+    pub fn hash(&self) -> Blake2b {
+        self.inner.hash()
+    }
 }
 
 impl Inner {

@@ -1,11 +1,23 @@
+/// Rperesents the error of the read_input functions
+#[derive(Debug)]
+pub enum ReadInputError {
+    /// The message does not be process by this rollup
+    NotATzwitterMessage,
+    /// There is no more messages
+    EndOfInbox,
+    /// There is an error in the bytes to string deserialization
+    FromUtf8Error(std::string::FromUtf8Error),
+    /// There is an error in the string to Message deserialization
+    SerdeJson(serde_json_wasm::de::Error),
+    /// There is an error runtime
+    Runtime(host::runtime::RuntimeError),
+}
+
 /// Represents all the error of the kernel
 ///
 #[derive(Debug)]
 pub enum Error {
-    SerdeJson(serde_json_wasm::de::Error),
     FromUtf8Error(std::string::FromUtf8Error),
-    EndOfInbox,
-    NotATzwitterMessage,
     Runtime(host::runtime::RuntimeError),
     Ed25519Compact(ed25519_compact::Error),
     InvalidSignature,
@@ -20,9 +32,6 @@ pub enum Error {
 impl ToString for Error {
     fn to_string(&self) -> String {
         let err = match self {
-            Error::SerdeJson(_) => "Cannot deserialize the message",
-            Error::EndOfInbox => "End of the inbox",
-            Error::NotATzwitterMessage => "Not a Tzwitter message",
             Error::FromUtf8Error(_) => "Cannot convert bytes to string",
             Error::Runtime(_) => "Runtime error, caused by host function",
             Error::Ed25519Compact(_) => "Cannot deserialize Ed25519",
@@ -49,7 +58,6 @@ macro_rules! register_error {
 }
 
 register_error!(FromUtf8Error, std::string::FromUtf8Error);
-register_error!(SerdeJson, serde_json_wasm::de::Error);
 register_error!(Ed25519Compact, ed25519_compact::Error);
 register_error!(PathError, host::path::PathError);
 register_error!(Runtime, host::runtime::RuntimeError);

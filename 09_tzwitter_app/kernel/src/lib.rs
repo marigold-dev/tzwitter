@@ -1,10 +1,11 @@
-use crate::core::message::Content;
+use crate::core::message::{Content, Message};
 use crate::core::public_key_hash::PublicKeyHash;
+use crate::core::receipt::Receipt;
 
 // src/lib.rs
 use host::{rollup_core::RawRollupCore, runtime::Runtime};
 use kernel::kernel_entry;
-use storage::{read_account, store_account};
+use storage::{read_account, store_account, store_receipt};
 
 mod constants;
 mod core;
@@ -19,13 +20,10 @@ use stages::{
 /// A step is processing only one message from the inbox
 ///
 /// It will execute several sub steps:
-/// - read the next message from the inbox
-/// - verify its signature
-/// - interpret the message
-/// - save the result to the durable state
-fn step<Host: RawRollupCore>(host: &mut Host) -> Result<()> {
-    host.write_debug("Processing message\n");
-    let message = read_input(host)?;
+/// - verify the signature of the message
+/// - verify the nonce of the message
+/// - handle the message
+fn step<Host: RawRollupCore>(host: &mut Host, message: Message) -> Result<()> {
     let public_key = message.public_key();
     let public_key_hash = PublicKeyHash::from(public_key);
     host.write_debug("Message is deserialized\n");
@@ -51,30 +49,39 @@ fn step<Host: RawRollupCore>(host: &mut Host) -> Result<()> {
 
 /// Process all the inbox
 ///
-/// It also has the responsability to reboot the kernel and count ticks
+/// Read a message, process the error of the read message
+/// If the message is correctly deserialized it continue the execution
+/// Then all the errors, will be stored in a receipt
+/// Continue until the inbox is emptied
+///
+/// This function stop its execution when a RuntimeError happens
+///
+/// TODO: it can count ticks and reboot the kernel between two inbox message
 fn execute<Host: RawRollupCore>(host: &mut Host) -> Result<()> {
-    let result = step(host);
-    match result {
-        Ok(()) => Ok(()),
-        Err(Error::SerdeJson(_)) => execute(host),
-        Err(Error::FromUtf8Error(_)) => execute(host),
-        Err(Error::EndOfInbox) => Ok(()),
-        Err(Error::NotATzwitterMessage) => execute(host),
-        Err(Error::Runtime(err)) => Err(Error::Runtime(err)),
-        Err(Error::Ed25519Compact(_)) => execute(host),
-        Err(Error::InvalidSignature) => execute(host),
-        Err(Error::InvalidNonce) => execute(host),
-        Err(Error::PathError(_)) => execute(host),
-        Err(Error::StateDeserializarion) => execute(host),
-        Err(Error::TweetNotFound) => execute(host),
-        Err(Error::TweetAlreadyLiked) => execute(host),
-        Err(Error::NotOwner) => execute(host),
+    let message = read_input(host);
+    match message {
+        Err(ReadInputError::EndOfInbox) => Ok(()),
+        Err(ReadInputError::Runtime(err)) => Err(Error::Runtime(err)),
+        Err(_) => execute(host),
+        Ok(message) => {
+            // If the message is processed we can extract the hash of the message
+            let hash = message.hash();
+            let result = step(host, message);
+
+            let receipt = Receipt::new(hash, &result);
+            let _ = store_receipt(host, &receipt)?;
+
+            match result {
+                Err(Error::Runtime(err)) => Err(Error::Runtime(err)),
+                Err(_) => execute(host),
+                Ok(()) => execute(host),
+            }
+        }
     }
 }
 
 fn entry<Host: RawRollupCore>(host: &mut Host) {
     host.write_debug("Hello Kernel\n");
-
     match execute(host) {
         Ok(()) => {}
         Err(err) => host.write_debug(&err.to_string()),
@@ -90,6 +97,8 @@ mod tests {
 
     use crate::{
         constants::MAGIC_BYTE,
+        core::message::Message,
+        stages::read_input,
         step,
         storage::{exists, read_u64},
     };
@@ -151,6 +160,10 @@ mod tests {
         hex::decode(msg).unwrap()
     }
 
+    fn next_input<Host: RawRollupCore + Runtime>(host: &mut Host) -> Message {
+        read_input(host).unwrap()
+    }
+
     #[test]
     fn test_step() {
         let state = HostState::default();
@@ -161,7 +174,8 @@ mod tests {
         host.as_mut().set_ready_for_input(0);
         host.as_mut().add_next_inputs(0, inputs);
 
-        let res = step(&mut host);
+        let message = next_input(&mut host);
+        let res = step(&mut host, message);
 
         assert!(res.is_ok());
 
@@ -186,8 +200,10 @@ mod tests {
         host.as_mut().set_ready_for_input(0);
         host.as_mut().add_next_inputs(0, inputs);
 
-        let res1 = step(&mut host);
-        let res2 = step(&mut host);
+        let message = next_input(&mut host);
+        let res1 = step(&mut host, message);
+        let message = next_input(&mut host);
+        let res2 = step(&mut host, message);
 
         assert!(res1.is_ok());
         assert!(res2.is_err());
@@ -203,8 +219,10 @@ mod tests {
         host.as_mut().set_ready_for_input(0);
         host.as_mut().add_next_inputs(0, inputs);
 
-        let res_1 = step(&mut host);
-        let res_2 = step(&mut host);
+        let message = next_input(&mut host);
+        let res_1 = step(&mut host, message);
+        let message = next_input(&mut host);
+        let res_2 = step(&mut host, message);
 
         assert!(res_1.is_ok());
         assert!(res_2.is_ok());
@@ -225,8 +243,10 @@ mod tests {
         host.as_mut().set_ready_for_input(0);
         host.as_mut().add_next_inputs(0, inputs);
 
-        let res_1 = step(&mut host);
-        let res_2 = step(&mut host);
+        let message = next_input(&mut host);
+        let res_1 = step(&mut host, message);
+        let message = next_input(&mut host);
+        let res_2 = step(&mut host, message);
 
         assert!(res_1.is_ok());
         assert!(res_2.is_ok());
@@ -246,9 +266,12 @@ mod tests {
         host.as_mut().set_ready_for_input(0);
         host.as_mut().add_next_inputs(0, inputs);
 
-        let res_1 = step(&mut host);
-        let res_2 = step(&mut host);
-        let res_3 = step(&mut host);
+        let message = next_input(&mut host);
+        let res_1 = step(&mut host, message);
+        let message = next_input(&mut host);
+        let res_2 = step(&mut host, message);
+        let message = next_input(&mut host);
+        let res_3 = step(&mut host, message);
 
         assert!(res_1.is_ok());
         assert!(res_2.is_ok());
@@ -268,8 +291,10 @@ mod tests {
         host.as_mut().set_ready_for_input(0);
         host.as_mut().add_next_inputs(0, inputs);
 
-        let res_1 = step(&mut host);
-        let res_2 = step(&mut host);
+        let message = next_input(&mut host);
+        let res_1 = step(&mut host, message);
+        let message = next_input(&mut host);
+        let res_2 = step(&mut host, message);
 
         assert!(res_1.is_ok());
         assert!(res_2.is_ok());
