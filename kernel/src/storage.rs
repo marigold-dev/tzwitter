@@ -1,4 +1,5 @@
 use crate::core::public_key_hash::PublicKeyHash;
+use crate::core::receipt::Receipt;
 use crate::core::tweet::Tweet;
 use crate::core::{account::Account, error::*, nonce::Nonce};
 use host::path::Path;
@@ -12,6 +13,7 @@ use host::{
 const ACCOUNTS: RefPath = RefPath::assert_from(b"/accounts");
 pub const TWEETS: RefPath = RefPath::assert_from(b"/tweets");
 const TWEET_COUNTER: RefPath = RefPath::assert_from(b"/constants/tweet-counter"); // The name constants is not appropriate
+const RECEIPTS: RefPath = RefPath::assert_from(b"/receipts");
 
 /// Compute the paths for the different fields of a tweet
 ///
@@ -83,6 +85,22 @@ fn account_written_tweet_path(
     tweet_id: &u64,
 ) -> Result<OwnedPath> {
     account_field_path(public_key_hash, &format!("/tweets/written/{}", tweet_id))
+}
+
+/// Compute the path of the different field of a receipt
+fn receipt_field_path(receipt: &Receipt, field_path: &str) -> Result<OwnedPath> {
+    let receipt_path = format!("/{}", receipt.hash().to_string());
+    let receipt_path = OwnedPath::try_from(receipt_path).map_err(Error::from)?;
+    let receipt_path = concat(&RECEIPTS, &receipt_path)?;
+
+    let field_path: Vec<u8> = field_path.into();
+    let field_path = OwnedPath::try_from(field_path).map_err(Error::from)?;
+    concat(&receipt_path, &field_path).map_err(Error::from)
+}
+
+/// Compute the path of the success field of a receipt
+fn receipt_success_path(receipt: &Receipt) -> Result<OwnedPath> {
+    receipt_field_path(receipt, "/success")
 }
 
 ///  Check if a path exists
@@ -160,6 +178,22 @@ fn read_string<Host: RawRollupCore + Runtime>(
 fn store_flag<Host: RawRollupCore + Runtime>(host: &mut Host, path: &impl Path) -> Result<()> {
     let data = [0x00].as_slice();
     host.store_write(path, data, 0)
+        .map_err(Error::from)
+        .map(|_| ())
+}
+
+/// Stores a boolean at a given path
+fn store_bool<Host: RawRollupCore + Runtime>(
+    host: &mut Host,
+    path: &impl Path,
+    bool: bool,
+) -> Result<()> {
+    let data = match bool {
+        true => [0x01],
+        false => [0x00],
+    };
+
+    host.store_write(path, &data, 0)
         .map_err(Error::from)
         .map(|_| ())
 }
@@ -318,4 +352,16 @@ pub fn transfer<Host: RawRollupCore + Runtime>(
     let from = account_owned_tweet_path(public_key_hash, tweet_id)?;
     let to = account_owned_tweet_path(destination, tweet_id)?;
     host.store_move(&from, &to).map_err(Error::from)
+}
+
+// Stores a receipt under /receipt/{hash}
+pub fn store_receipt<'a, Host: RawRollupCore + Runtime>(
+    host: &mut Host,
+    receipt: &'a Receipt,
+) -> Result<&'a Receipt> {
+    let success_path = receipt_success_path(receipt)?;
+
+    let () = store_bool(host, &success_path, receipt.success())?;
+
+    Ok(receipt)
 }

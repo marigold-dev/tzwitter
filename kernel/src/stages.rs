@@ -23,21 +23,24 @@ use crate::core::message::Message;
 ///
 /// It will only read messages External Messages with the MAGIC_BYTE
 /// Benchmark: 2_000_000 ticks (processing an inbox with only one message)
-pub fn read_input<Host: RawRollupCore>(host: &mut Host) -> Result<Message> {
+pub fn read_input<Host: RawRollupCore>(
+    host: &mut Host,
+) -> std::result::Result<Message, ReadInputError> {
     let input = host
         .read_input(MAX_INPUT_MESSAGE_SIZE)
-        .map_err(Error::from)?;
+        .map_err(|err| ReadInputError::Runtime(err))?;
     match input {
-        None => Err(Error::EndOfInbox),
+        None => Err(ReadInputError::EndOfInbox),
         Some(message) => {
             let data = message.as_ref();
             match data {
                 [0x01, MAGIC_BYTE, ..] => {
                     let bytes = data.iter().skip(2).copied().collect();
-                    let str = String::from_utf8(bytes).map_err(Error::from)?;
-                    serde_json_wasm::from_str(&str).map_err(Error::from)
+                    let str = String::from_utf8(bytes)
+                        .map_err(|err| ReadInputError::FromUtf8Error(err))?;
+                    serde_json_wasm::from_str(&str).map_err(|err| ReadInputError::SerdeJson(err))
                 }
-                _ => Err(Error::NotATzwitterMessage),
+                _ => Err(ReadInputError::NotATzwitterMessage),
             }
         }
     }
