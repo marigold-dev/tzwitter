@@ -39,9 +39,9 @@ if [ ! -d "/tmp/kernel" ]; then
   git clone git@gitlab.com:tezos/kernel.git /tmp/kernel
 fi
 
-# Modify the line 41 of the installer_kernel (TODO: find a regex to do so, that does not implu )
+# Modify the line 41 of the installer_kernel (TODO: find a regex to do so, that does not imply the hash )
 cd /tmp/kernel
-sed -i "66s/.*/b\"${ROOT_HASH}\";/" /tmp/kernel/installer_kernel/src/lib.rs
+sed -i "68s/.*/b\"${ROOT_HASH}\";/" /tmp/kernel/installer_kernel/src/lib.rs
 cargo make wasm-preimage-installer 
 
 wasm-strip /tmp/kernel/target/wasm32-unknown-unknown/release/tezos_rollup_installer_kernel.wasm
