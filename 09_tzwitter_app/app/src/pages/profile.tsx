@@ -28,7 +28,7 @@ const Profile = ({ tzwitter, account }: ProfileProperty) => {
   const onClose = () => setForm(undefined);
   const disabled = !(form && form.destination);
 
-  const onTweetClick =
+  const onTransferClick =
     feedKind === 'owned'
       ? (tweetId: number) => () => setForm({ tweetId, destination: '' })
       : undefined;
@@ -57,7 +57,7 @@ const Profile = ({ tzwitter, account }: ProfileProperty) => {
         <FeedContainer
           publicKeyHash={account.publicKeyHash}
           tzwitter={tzwitter}
-          onTweetClick={onTweetClick}
+          onTransfer={onTransferClick}
           feedKind={feedKind}
         />
       </div>
