@@ -3,7 +3,7 @@ import TweetComponent from './TweetComponent';
 
 interface FeedProperty {
   tweets: Array<Tweet>;
-  onLike: (tweetId: number) => () => Promise<string>;
+  onLike: (tweetId: number) => () => Promise<void>;
   onAuthorClick?: (author: string) => () => void;
   onTransfer?: (tweetId: number) => () => void;
 }

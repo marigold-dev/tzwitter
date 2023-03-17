@@ -10,6 +10,7 @@ import { InMemorySigner } from '@taquito/signer';
 import { Tzwitter } from '../lib/tzwitter';
 import { useEffect, useState } from 'react';
 import AccountType from '../lib/account';
+import { TezosToolkit } from '@taquito/taquito';
 
 const Error = () => {
   return <Navigate to="/" replace={true} />;
@@ -20,12 +21,12 @@ const signer = new InMemorySigner(secret);
 const TEZOS_URL = 'http://localhost:18731';
 const ROLLUP_URL = 'http://localhost:8932';
 
-const tzwitterClient = new Tzwitter({
+const tezos = new TezosToolkit(TEZOS_URL);
+tezos.setProvider({
   signer,
-  tezosUrl: TEZOS_URL,
-  rollupUrl: ROLLUP_URL,
-  verbose: true,
 });
+
+const tzwitterClient = new Tzwitter({ tezos, signer, rollupUrl: ROLLUP_URL });
 
 const Index = () => {
   const [account, setAccount] = useState<AccountType | undefined>();
@@ -33,6 +34,7 @@ const Index = () => {
 
   useEffect(() => {
     // Later beacon sdk login logic should be put here
+    // The provider of the tezos should be updated
     // Available pages should be filtered
     signer.publicKeyHash().then((publicKeyHash) => {
       setAccount({ publicKeyHash });

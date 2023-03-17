@@ -1,6 +1,8 @@
 import { blake2bHex } from 'blakejs';
 import { RollupClient, Signer } from './rollup';
 import { Tweet } from './tweet';
+import { TezosToolkit } from '@taquito/taquito';
+import { SmartRollupAddMessagesOperation } from '@taquito/taquito/dist/types/operations/smart-rollup-add-messages-operation';
 
 class Tzwitter {
   private signer: Signer;
@@ -8,25 +10,18 @@ class Tzwitter {
   private magicByte: string;
 
   constructor({
+    tezos,
     signer,
-    tezosUrl,
     rollupUrl,
     magicByte,
-    verbose,
   }: {
+    tezos: TezosToolkit;
     signer: Signer;
-    tezosUrl: string;
     rollupUrl: string;
     magicByte?: string;
-    verbose?: boolean;
   }) {
     this.signer = signer;
-    this.rollupClient = new RollupClient({
-      signer,
-      tezosUrl,
-      rollupUrl,
-      verbose,
-    });
+    this.rollupClient = new RollupClient({ tezos, rollupUrl });
     this.magicByte = '74' || magicByte;
   }
 
@@ -35,7 +30,7 @@ class Tzwitter {
    * @param tweet
    * @returns
    */
-  async postTweet(tweet: string): Promise<string> {
+  async postTweet(tweet: string): Promise<SmartRollupAddMessagesOperation> {
     const publicKeyHash = await this.signer.publicKeyHash();
     // Compute the next nonce of the user
     const nonceBytes = await this.rollupClient.getState(
@@ -154,7 +149,7 @@ class Tzwitter {
    * @param tweetId the id of the tweet to like
    * @returns the hash of the operation
    */
-  async like(tweetId: number): Promise<string> {
+  async like(tweetId: number): Promise<SmartRollupAddMessagesOperation> {
     const publicKeyHash = await this.signer.publicKeyHash();
     // Compute the next nonce of the user
     const nonceBytes = await this.rollupClient.getState(
@@ -191,7 +186,10 @@ class Tzwitter {
     return this.rollupClient.send(this.magicByte + payload);
   }
 
-  async transferTweet(tweetId: number, destination: string): Promise<string> {
+  async transferTweet(
+    tweetId: number,
+    destination: string,
+  ): Promise<SmartRollupAddMessagesOperation> {
     const publicKeyHash = await this.signer.publicKeyHash();
     // Compute the next nonce of the user
     const nonceBytes = await this.rollupClient.getState(
