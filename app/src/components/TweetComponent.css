@@ -61,7 +61,11 @@
   display: flex;
 }
 
-.tweet-likes {
+.tweet-footer > * {
+  margin-right: 8px;
+}
+
+.tweet-footer-buttom {
   display: flex;
   align-items: center;
   color: rgb(62, 65, 68);
@@ -70,6 +74,15 @@
   transition: background-color 0.15s, color 0.15s;
   border: none;
   background-color: transparent;
+}
+
+.tweet-footer-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.tweet-likes-icon {
+  margin-right: 8px;
 }
 
 .tweet-likes:hover:disabled {
@@ -88,8 +101,9 @@
     brightness(103%) contrast(95%);
 }
 
-.tweet-likes-icon {
-  width: 24px;
-  height: 24px;
-  margin-right: 8px;
+.tweet-transfer:hover:enabled {
+  cursor: pointer;
+  background-color: rgb(0, 186, 124, 0.1);
+  filter: invert(62%) sepia(45%) saturate(4329%) hue-rotate(121deg)
+    brightness(90%) contrast(101%);
 }

@@ -4,29 +4,24 @@ import './TweetComponent.css';
 interface TweetProperty {
   tweet: Tweet;
   onLike: () => Promise<string>;
+  onTransfer?: () => void;
   onAuthorClick?: () => void;
-  onTweetClick?: () => void;
 }
 
 const TweetComponent = ({
   tweet,
   onLike,
   onAuthorClick,
-  onTweetClick,
+  onTransfer,
 }: TweetProperty) => {
   const { id, author, content, likes } = tweet;
-  const containerClassnames: string = [
-    'tweet',
-    ...(onTweetClick ? ['clickable-tweet'] : []),
-  ].join(' ');
-
   const authorClassNames: string = [
     'tweet-author',
     ...(onAuthorClick ? ['clickable-tweet-author'] : []),
   ].join(' ');
 
   return (
-    <div className={containerClassnames} onClick={onTweetClick}>
+    <div className={'tweet'}>
       <div className="tweet-header">
         <div className={authorClassNames} onClick={onAuthorClick}>
           {author}
@@ -37,17 +32,29 @@ const TweetComponent = ({
       <div className="tweet-content">{content}</div>
       <div className="tweet-footer">
         <button
-          className={'tweet-likes'}
+          className={'tweet-footer-buttom tweet-likes'}
           onClick={onLike}
           disabled={tweet.isLiked}
         >
           <img
-            className="tweet-likes-icon"
+            className="tweet-footer-icon tweet-likes-icon"
             src={tweet.isLiked ? '/heart-fill.svg' : '/heart.svg'}
             alt="heart"
           />
           <span>{likes}</span>
         </button>
+        {onTransfer && (
+          <button
+            className={'tweet-footer-buttom tweet-transfer'}
+            onClick={onTransfer}
+          >
+            <img
+              className="tweet-footer-icon"
+              src={'/transfer.svg'}
+              alt="heart"
+            />
+          </button>
+        )}
       </div>
     </div>
   );

@@ -5,15 +5,10 @@ interface FeedProperty {
   tweets: Array<Tweet>;
   onLike: (tweetId: number) => () => Promise<string>;
   onAuthorClick?: (author: string) => () => void;
-  onTweetClick?: (tweetId: number) => () => void;
+  onTransfer?: (tweetId: number) => () => void;
 }
 
-const Feed = ({
-  tweets,
-  onLike,
-  onAuthorClick,
-  onTweetClick,
-}: FeedProperty) => {
+const Feed = ({ tweets, onLike, onAuthorClick, onTransfer }: FeedProperty) => {
   return (
     <div>
       {tweets.map((tweet) => {
@@ -23,7 +18,7 @@ const Feed = ({
             tweet={tweet}
             onLike={onLike(tweet.id)}
             onAuthorClick={onAuthorClick && onAuthorClick(tweet.author)}
-            onTweetClick={onTweetClick && onTweetClick(tweet.id)}
+            onTransfer={onTransfer && onTransfer(tweet.id)}
           />
         );
       })}

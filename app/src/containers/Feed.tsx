@@ -9,7 +9,7 @@ type FeedKind = 'owned' | 'written' | 'all';
 interface FeedProperty {
   tzwitter: Tzwitter;
   publicKeyHash?: string;
-  onTweetClick?: (tweetId: number) => () => void;
+  onTransfer?: (tweetId: number) => () => void;
   onAuthorClick?: (author: string) => () => void;
   feedKind: FeedKind;
 }
@@ -17,7 +17,7 @@ interface FeedProperty {
 const FeedContainer = ({
   tzwitter,
   publicKeyHash,
-  onTweetClick,
+  onTransfer,
   onAuthorClick,
   feedKind,
 }: FeedProperty) => {
@@ -60,7 +60,7 @@ const FeedContainer = ({
         tweets={tweets}
         onLike={onLike}
         onAuthorClick={onAuthorClick}
-        onTweetClick={onTweetClick}
+        onTransfer={onTransfer}
       />
     </>
   );
