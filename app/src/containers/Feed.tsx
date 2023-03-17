@@ -50,7 +50,8 @@ const FeedContainer = ({
   }, [feedKind, publicKeyHash, tzwitter]);
 
   const onLike = (tweetId: number) => async () => {
-    return await tzwitter.like(tweetId);
+    await tzwitter.like(tweetId);
+    return;
   };
 
   return (

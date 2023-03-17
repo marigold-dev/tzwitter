@@ -3,7 +3,7 @@ import './TweetComponent.css';
 
 interface TweetProperty {
   tweet: Tweet;
-  onLike: () => Promise<string>;
+  onLike: () => Promise<void>;
   onTransfer?: () => void;
   onAuthorClick?: () => void;
 }
