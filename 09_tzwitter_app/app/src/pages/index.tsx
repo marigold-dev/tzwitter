@@ -11,6 +11,7 @@ import { Tzwitter } from '../lib/tzwitter';
 import { useEffect, useState } from 'react';
 import AccountType from '../lib/account';
 import { TezosToolkit } from '@taquito/taquito';
+import { ROLLUP_RPC, TEZOS_RPC } from '../config';
 
 const Error = () => {
   return <Navigate to="/" replace={true} />;
@@ -18,15 +19,13 @@ const Error = () => {
 
 const secret = 'edsk3a5SDDdMWw3Q5hPiJwDXUosmZMTuKQkriPqY6UqtSfdLifpZbB';
 const signer = new InMemorySigner(secret);
-const TEZOS_URL = 'http://localhost:18731';
-const ROLLUP_URL = 'http://localhost:8932';
 
-const tezos = new TezosToolkit(TEZOS_URL);
+const tezos = new TezosToolkit(TEZOS_RPC);
 tezos.setProvider({
   signer,
 });
 
-const tzwitterClient = new Tzwitter({ tezos, signer, rollupUrl: ROLLUP_URL });
+const tzwitterClient = new Tzwitter({ tezos, signer, rollupUrl: ROLLUP_RPC });
 
 const Index = () => {
   const [account, setAccount] = useState<AccountType | undefined>();
