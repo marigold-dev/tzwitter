@@ -40,22 +40,43 @@ const Index = () => {
     });
   }, [tzwitter]);
 
+  // Menu entries
+  // Entries that need a connected user will be removed
+  const menu = [
+    {
+      id: 'home',
+      link: '/',
+      text: 'Home',
+      icon: '/home.svg',
+      connected: false,
+    },
+    {
+      id: 'profile',
+      link: '/profile',
+      text: 'Profile',
+      icon: '/profile.svg',
+      connected: true,
+    },
+  ].filter(({ connected }) => (connected && !account ? false : true));
+
   const router = createBrowserRouter([
     {
       path: '/',
-      element: <Home tzwitter={tzwitter} />,
+      element: <Home menu={menu} tzwitter={tzwitter} />,
       errorElement: <Error />,
     },
     {
       path: '/feed/:publicKeyHash',
-      element: <Feed tzwitter={tzwitter} />,
+      element: <Feed menu={menu} tzwitter={tzwitter} />,
       errorElement: <Error />,
     },
     ...(account
       ? [
           {
             path: '/profile',
-            element: <Profile tzwitter={tzwitter} account={account} />,
+            element: (
+              <Profile menu={menu} tzwitter={tzwitter} account={account} />
+            ),
             errorElement: <Error />,
           },
         ]

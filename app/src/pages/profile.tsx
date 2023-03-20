@@ -1,5 +1,4 @@
-import { useNavigate } from 'react-router-dom';
-import Menu from '../components/menu';
+import { MenuEntries } from '../components/menu';
 import ProfileHeader from '../components/ProfileHeader';
 import FeedContainer from '../containers/Feed';
 import { useState } from 'react';
@@ -8,10 +7,12 @@ import Account from '../lib/account';
 import Popup from '../components/popup';
 import FeedKind from '../components/FeedKind';
 import './css/profile.css';
+import Layout from '../containers/Layout';
 
 interface ProfileProperty {
   tzwitter: Tzwitter;
   account: Account;
+  menu: MenuEntries;
 }
 
 interface Form {
@@ -19,8 +20,7 @@ interface Form {
   destination: string;
 }
 
-const Profile = ({ tzwitter, account }: ProfileProperty) => {
-  const navigate = useNavigate();
+const Profile = ({ tzwitter, account, menu }: ProfileProperty) => {
   const [form, setForm] = useState<Form | undefined>(undefined);
   const [feedKind, setFeedKind] = useState<'owned' | 'written'>('owned');
 
@@ -46,12 +46,9 @@ const Profile = ({ tzwitter, account }: ProfileProperty) => {
     onClose();
   };
 
-  console.log(feedKind);
-
   return (
-    <div id="container">
-      <Menu current={'/profile'} navigate={navigate} />
-      <div id="content">
+    <>
+      <Layout menu={menu} current="profile">
         <ProfileHeader />
         <FeedKind value={feedKind} onChange={setFeedKind} />
         <FeedContainer
@@ -60,7 +57,7 @@ const Profile = ({ tzwitter, account }: ProfileProperty) => {
           onTransfer={onTransferClick}
           feedKind={feedKind}
         />
-      </div>
+      </Layout>
       <Popup isOpen={isOpen} onClose={onClose}>
         <div id="transfer-title">Transfer a tweet</div>
         <input
@@ -75,7 +72,7 @@ const Profile = ({ tzwitter, account }: ProfileProperty) => {
           </button>
         </div>
       </Popup>
-    </div>
+    </>
   );
 };
 

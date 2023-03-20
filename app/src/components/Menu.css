@@ -10,14 +10,12 @@
   margin-bottom: 24px;
 }
 
-#menu-home,
-#menu-profile {
+.menu-entry {
   margin-bottom: 12px;
 }
 
 #menu-tezos,
-#menu-home,
-#menu-profile {
+.menu-entry {
   display: flex;
   align-items: center;
   justify-content: left;
@@ -28,14 +26,12 @@
   cursor: pointer;
 }
 
-#menu-home > div,
-#menu-profile > div {
+.menu-entry > div {
   margin-left: 16px;
   font-size: 20px;
 }
 
-#menu-home:hover,
-#menu-profile:hover {
+.menu-entry:hover {
   background-color: rgba(231, 233, 234, 0.1);
 }
 

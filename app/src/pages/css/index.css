@@ -2,20 +2,3 @@ html,
 body {
   background-color: black;
 }
-
-#container {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-}
-
-#content {
-  max-width: 80ch;
-  width: 100%;
-  margin-right: 4px;
-  margin-left: 4px;
-  border-left: 1px solid rgb(62, 65, 68);
-  border-right: 1px solid rgb(62, 65, 68);
-  height: 100%;
-}
