@@ -1,7 +1,17 @@
 #!/bin/sh
 
+# check account
 account_alias=$1
 if [[ "$account_alias" == "" ]]; then echo "first argument should be an account alias with enough tez" && exit 1;fi
+
+# check if smart-rollup-installer is installed
+which smart-rollup-installer > /dev/null || (echo "smart-rollup-installer should be installed" && echo "cargo install tezos_smart_rollup_installer --git https://gitlab.com/tezos/tezos" && exit 1)
+
+# xxd should be installed
+which xxd > /dev/null || (echo "xxd should be installed" && exit 1)
+
+# wasm-strip
+which wasm-strip > /dev/null || (echo "wasm-strip should be installed" && echo "https://github.com/WebAssembly/wabt" exit 1)
 
 # Compiling the kernel
 cargo build --release --target wasm32-unknown-unknown --manifest-path kernel/Cargo.toml
@@ -21,33 +31,21 @@ KERNEL=$(xxd -ps -c 0 rollup/kernel.wasm | tr -d '\n')
 
 # Setup the DAC
 mkdir -p rollup/wasm_2_0_0
-mkdir -p /tmp/dac
-octez-dac-node configure as legacy with threshold 0 and data availability committee members --data-dir /tmp/dac --reveal-data-dir $PWD/rollup/wasm_2_0_0
-echo "{ \"reveal_data_dir\": \"$PWD/rollup/wasm_2_0_0\", \"mode\": { \"legacy\": true } }" > /tmp/dac/config.json
 
-# Run the DAC
-octez-dac-node run --data-dir /tmp/dac &> /dev/null&
-dac_pid=$!
+# Copy the kernel in the rollup directory
+mkdir -p rollup
+cp kernel/target/wasm32-unknown-unknown/release/tzwitter_kernel.wasm ./rollup/kernel.wasm
 
-# Split the kernel
-sleep 3; # To be sure the dac is started
-ROOT_HASH=$(echo "{\"payload\": \"$KERNEL\", \"pagination_scheme\":\"Merkle_tree_V0\"}" | curl --silent --header "Content-Type: application/json" -X POST -d @- http://localhost:10832/store_preimage | jq -r ".root_hash");
+# Reducing the size of the kernel with wasm-strip (optional)
+wasm-strip ./rollup/kernel.wasm
 
-# Installer kernel
-# To be faster we clone only one time the kernel repository
-if [ ! -d "/tmp/kernel" ]; then
-  git clone git@gitlab.com:tezos/kernel.git /tmp/kernel
-fi
+# Using the smart-rollup-installer
+# It will generate the installer.hex
+# And split the kernel
+smart-rollup-installer get-reveal-installer --upgrade-to rollup/kernel.wasm --output rollup/installer.hex --preimages-dir rollup/wasm_2_0_0
 
-# Modify the line 41 of the installer_kernel (TODO: find a regex to do so, that does not imply the hash )
-cd /tmp/kernel
-sed -i "68s/.*/b\"${ROOT_HASH}\";/" /tmp/kernel/installer_kernel/src/lib.rs
-cargo make wasm-preimage-installer 
-
-wasm-strip /tmp/kernel/target/wasm32-unknown-unknown/release/tezos_rollup_installer_kernel.wasm
-KERNEL_INSTALLER=$(xxd -ps -c 0 /tmp/kernel/target/wasm32-unknown-unknown/release/tezos_rollup_installer_kernel.wasm | tr -d '\n')
-cd -
-ls
+# Save the bytes of the kernel as a variable
+KERNEL_INSTALLER=$(cat rollup/installer.hex)
 
 # Originate the kernel 
 SOR_ADDR=$(octez-client originate smart rollup from $account_alias \
