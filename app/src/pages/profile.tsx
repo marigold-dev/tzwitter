@@ -46,6 +46,16 @@ const Profile = ({ tzwitter, account, menu }: ProfileProperty) => {
     onClose();
   };
 
+  const onCollectClick =
+    feedKind === 'owned'
+      ? (tweetId: number) => () => tzwitter.collect(tweetId)
+      : undefined;
+
+  const onLike = (tweetId: number) => () => {
+    tzwitter.like(tweetId);
+    return;
+  };
+
   return (
     <>
       <Layout menu={menu} current="profile">
@@ -54,8 +64,10 @@ const Profile = ({ tzwitter, account, menu }: ProfileProperty) => {
         <FeedContainer
           publicKeyHash={account.publicKeyHash}
           tzwitter={tzwitter}
+          onLike={onLike}
           onTransfer={onTransferClick}
           feedKind={feedKind}
+          onCollect={onCollectClick}
         />
       </Layout>
       <Popup isOpen={isOpen} onClose={onClose}>

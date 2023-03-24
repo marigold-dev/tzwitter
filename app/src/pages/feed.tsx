@@ -22,6 +22,11 @@ const Feed = ({ tzwitter, menu }: FeedProperty) => {
     navigate('/');
   };
 
+  const onLike = (tweetId: number) => () => {
+    tzwitter.like(tweetId);
+    return;
+  };
+
   return (
     <Layout menu={menu} current="feed">
       <FeedHeader author={publicKeyHash} goToHome={goToHome} />
@@ -29,6 +34,7 @@ const Feed = ({ tzwitter, menu }: FeedProperty) => {
       <FeedContainer
         publicKeyHash={publicKeyHash}
         tzwitter={tzwitter}
+        onLike={onLike}
         feedKind={feedKind}
       />
     </Layout>

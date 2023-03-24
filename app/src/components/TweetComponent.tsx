@@ -3,9 +3,10 @@ import './TweetComponent.css';
 
 interface TweetProperty {
   tweet: Tweet;
-  onLike: () => Promise<void>;
+  onLike?: () => void;
   onTransfer?: () => void;
   onAuthorClick?: () => void;
+  onCollect?: () => void;
 }
 
 const TweetComponent = ({
@@ -13,12 +14,15 @@ const TweetComponent = ({
   onLike,
   onAuthorClick,
   onTransfer,
+  onCollect,
 }: TweetProperty) => {
   const { id, author, content, likes } = tweet;
   const authorClassNames: string = [
     'tweet-author',
     ...(onAuthorClick ? ['clickable-tweet-author'] : []),
   ].join(' ');
+
+  const isCollected = !!tweet.collected;
 
   return (
     <div className={'tweet'}>
@@ -31,19 +35,21 @@ const TweetComponent = ({
       </div>
       <div className="tweet-content">{content}</div>
       <div className="tweet-footer">
-        <button
-          className={'tweet-footer-buttom tweet-likes'}
-          onClick={onLike}
-          disabled={tweet.isLiked}
-        >
-          <img
-            className="tweet-footer-icon tweet-likes-icon"
-            src={tweet.isLiked ? '/heart-fill.svg' : '/heart.svg'}
-            alt="heart"
-          />
-          <span>{likes}</span>
-        </button>
-        {onTransfer && (
+        {onLike && (
+          <button
+            className={'tweet-footer-buttom tweet-likes'}
+            onClick={onLike}
+            disabled={isCollected || tweet.isLiked}
+          >
+            <img
+              className="tweet-footer-icon tweet-footer-button-with-text"
+              src={tweet.isLiked ? '/heart-fill.svg' : '/heart.svg'}
+              alt="heart"
+            />
+            <span>{likes}</span>
+          </button>
+        )}
+        {onTransfer && !isCollected && (
           <button
             className={'tweet-footer-buttom tweet-transfer'}
             onClick={onTransfer}
@@ -51,8 +57,37 @@ const TweetComponent = ({
             <img
               className="tweet-footer-icon"
               src={'/transfer.svg'}
-              alt="heart"
+              alt="transfer"
             />
+          </button>
+        )}
+        {onCollect && !isCollected && (
+          <button
+            className={'tweet-footer-buttom tweet-collect'}
+            onClick={onCollect}
+          >
+            <img
+              className="tweet-footer-icon"
+              src={'/collect.svg'}
+              alt="collect"
+            />
+          </button>
+        )}
+        {tweet.collected && (
+          <button className={'tweet-footer-buttom tweet-mint'} disabled={true}>
+            <img
+              className="tweet-footer-icon tweet-footer-button-with-text"
+              src={'/tezos.svg'}
+              alt="tezos"
+            />
+            <span>
+              {new Date() > tweet.collected.mintableDate
+                ? 'Mintable now!'
+                : 'Mintable on ' +
+                  tweet.collected.mintableDate.toLocaleDateString() +
+                  ' at ' +
+                  tweet.collected.mintableDate.toLocaleTimeString()}
+            </span>
           </button>
         )}
       </div>
