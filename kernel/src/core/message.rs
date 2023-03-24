@@ -22,6 +22,7 @@ pub enum Content {
     PostTweet(PostTweet),
     LikeTweet(u64),
     Transfer(Transfer),
+    Collect(u64),
 }
 
 #[derive(Deserialize)]
@@ -88,6 +89,10 @@ impl Inner {
                     transfer.destination.to_string(),
                     transfer.tweet_id
                 );
+                Blake2b::from(string.as_bytes())
+            }
+            Content::Collect(tweet_id) => {
+                let string = format!("{}{}", nonce.to_string(), tweet_id);
                 Blake2b::from(string.as_bytes())
             }
         }

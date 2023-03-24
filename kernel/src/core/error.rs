@@ -27,6 +27,12 @@ pub enum Error {
     TweetNotFound,
     TweetAlreadyLiked,
     NotOwner,
+    TweetAlreadyCollected,
+    FromBase58CheckError,
+    BigIntError,
+    BinError(tezos_data_encoding::enc::BinError),
+    EntrypointError(tezos_rollup_encoding::entrypoint::EntrypointError),
+    NotInfoPerLevelMsg,
 }
 
 impl ToString for Error {
@@ -42,6 +48,12 @@ impl ToString for Error {
             Error::TweetNotFound => "Tweet not found",
             Error::TweetAlreadyLiked => "The tweet has already been liked by this account",
             Error::NotOwner => "Not the owner of the tweet",
+            Error::TweetAlreadyCollected => "The tweet has already been collected",
+            Error::FromBase58CheckError => "Cannot convert a string to a contract address",
+            Error::BigIntError => "Cannot deserialize big int",
+            Error::BinError(_) => "Cannot serialize michelson to binary",
+            Error::EntrypointError(_) => "Not a correct entrypoint",
+            Error::NotInfoPerLevelMsg => "Was waiting for the InfoPerLevel message",
         };
         err.to_string()
     }
@@ -61,5 +73,10 @@ register_error!(FromUtf8Error, std::string::FromUtf8Error);
 register_error!(Ed25519Compact, ed25519_compact::Error);
 register_error!(PathError, host::path::PathError);
 register_error!(Runtime, host::runtime::RuntimeError);
+register_error!(BinError, tezos_data_encoding::enc::BinError);
+register_error!(
+    EntrypointError,
+    tezos_rollup_encoding::entrypoint::EntrypointError
+);
 
 pub type Result<A> = std::result::Result<A, Error>;
