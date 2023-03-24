@@ -4,14 +4,16 @@ import { Tzwitter } from '../lib/tzwitter';
 import NumberOfTweets from '../components/NumberOfTweets';
 import Feed from '../components/Feed';
 
-type FeedKind = 'owned' | 'written' | 'all';
+type FeedKind = 'owned' | 'written' | 'collecting' | 'all';
 
 interface FeedProperty {
   tzwitter: Tzwitter;
   publicKeyHash?: string;
   onTransfer?: (tweetId: number) => () => void;
   onAuthorClick?: (author: string) => () => void;
+  onLike?: (tweetId: number) => () => void;
   feedKind: FeedKind;
+  onCollect?: (tweetId: number) => () => void;
 }
 
 const FeedContainer = ({
@@ -19,19 +21,29 @@ const FeedContainer = ({
   publicKeyHash,
   onTransfer,
   onAuthorClick,
+  onLike,
   feedKind,
+  onCollect,
 }: FeedProperty) => {
   const [tweets, setTweets] = useState<Array<Tweet>>([]);
 
   useEffect(() => {
-    console.log(tzwitter.getOwnedTweets);
-
-    const getTweets = () =>
-      feedKind === 'owned' && publicKeyHash
-        ? tzwitter.getOwnedTweets(publicKeyHash)
-        : feedKind === 'written' && publicKeyHash
-        ? tzwitter.getWrittenTweets(publicKeyHash)
-        : tzwitter.getTweets();
+    const getTweets = async (): Promise<Array<number>> => {
+      switch (feedKind) {
+        case 'owned':
+          return publicKeyHash ? tzwitter.getOwnedTweets(publicKeyHash) : [];
+        case 'written':
+          return publicKeyHash ? tzwitter.getWrittenTweets(publicKeyHash) : [];
+        case 'collecting': {
+          return publicKeyHash
+            ? tzwitter.getCollectedTweets(publicKeyHash)
+            : [];
+        }
+        case 'all':
+        default:
+          return tzwitter.getTweets();
+      }
+    };
 
     const retrieveTweets = async () => {
       const tzwIds = await getTweets();
@@ -49,11 +61,6 @@ const FeedContainer = ({
     };
   }, [feedKind, publicKeyHash, tzwitter]);
 
-  const onLike = (tweetId: number) => async () => {
-    await tzwitter.like(tweetId);
-    return;
-  };
-
   return (
     <>
       <NumberOfTweets number={tweets.length} />
@@ -62,6 +69,7 @@ const FeedContainer = ({
         onLike={onLike}
         onAuthorClick={onAuthorClick}
         onTransfer={onTransfer}
+        onCollect={onCollect}
       />
     </>
   );

@@ -3,12 +3,19 @@ import TweetComponent from './TweetComponent';
 
 interface FeedProperty {
   tweets: Array<Tweet>;
-  onLike: (tweetId: number) => () => Promise<void>;
+  onLike?: (tweetId: number) => () => void;
   onAuthorClick?: (author: string) => () => void;
   onTransfer?: (tweetId: number) => () => void;
+  onCollect?: (tweetId: number) => () => void;
 }
 
-const Feed = ({ tweets, onLike, onAuthorClick, onTransfer }: FeedProperty) => {
+const Feed = ({
+  tweets,
+  onLike,
+  onAuthorClick,
+  onTransfer,
+  onCollect,
+}: FeedProperty) => {
   return (
     <div>
       {tweets.map((tweet) => {
@@ -16,9 +23,10 @@ const Feed = ({ tweets, onLike, onAuthorClick, onTransfer }: FeedProperty) => {
           <TweetComponent
             key={tweet.id}
             tweet={tweet}
-            onLike={onLike(tweet.id)}
+            onLike={onLike && onLike(tweet.id)}
             onAuthorClick={onAuthorClick && onAuthorClick(tweet.author)}
             onTransfer={onTransfer && onTransfer(tweet.id)}
+            onCollect={onCollect && onCollect(tweet.id)}
           />
         );
       })}

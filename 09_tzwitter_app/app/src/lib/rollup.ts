@@ -3,6 +3,11 @@ import { SmartRollupAddMessagesOperation } from '@taquito/taquito/dist/types/ope
 
 // This client has to be generic, it should adapt to any rollups
 
+interface RollupBlock {
+  block_hash: string;
+  level: number;
+}
+
 interface Signer {
   sign: (bytes: string) => Promise<{
     bytes: string;
@@ -71,6 +76,35 @@ class RollupClient {
   async getSubkeys(path: string) {
     const rollupUrl = this.rollupUrl;
     const url = `${rollupUrl}/global/block/head/durable/wasm_2_0_0/subkeys?key=${path}`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.error(`${url} returns ${res.status}`);
+    }
+    return res.json();
+  }
+
+  /**
+   * Retrieves the current tezos level of the rollup
+   * @returns the current tezos level of the rollup
+   */
+  async tezosLevel(): Promise<number> {
+    const rollupUrl = this.rollupUrl;
+    const url = `${rollupUrl}/global/tezos_level`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.error(`${url} returns ${res.status}`);
+    }
+    const result = await res.text();
+    return Number(result);
+  }
+
+  /**
+   * Returns the rollup block of a given
+   * @param blockHash
+   */
+  async getBlock(blockHash: string): Promise<RollupBlock> {
+    const rollupUrl = this.rollupUrl;
+    const url = `${rollupUrl}/global/block/${blockHash}`;
     const res = await fetch(url);
     if (!res.ok) {
       console.error(`${url} returns ${res.status}`);

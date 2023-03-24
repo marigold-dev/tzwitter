@@ -25,6 +25,11 @@ const Home = ({ tzwitter, menu }: HomeProperty) => {
     navigate(`/feed/${author}`);
   };
 
+  const onLike = (tweetId: number) => () => {
+    tzwitter.like(tweetId);
+    return;
+  };
+
   return (
     <Layout menu={menu} current="home">
       <Input
@@ -35,6 +40,7 @@ const Home = ({ tzwitter, menu }: HomeProperty) => {
       />
       <FeedContainer
         tzwitter={tzwitter}
+        onLike={onLike}
         onAuthorClick={onAuthorClick}
         feedKind="all"
       />

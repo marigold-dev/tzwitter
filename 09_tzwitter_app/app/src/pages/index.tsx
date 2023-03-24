@@ -30,6 +30,7 @@ const tzwitterClient = new Tzwitter({ tezos, signer, rollupUrl: ROLLUP_RPC });
 const Index = () => {
   const [account, setAccount] = useState<AccountType | undefined>();
   const [tzwitter] = useState<Tzwitter>(tzwitterClient);
+  const [, setCollecting] = useState<Array<number>>([]);
 
   useEffect(() => {
     // Later beacon sdk login logic should be put here
@@ -40,6 +41,19 @@ const Index = () => {
     });
   }, [tzwitter]);
 
+  useEffect(() => {
+    const checkCollecting = () => {
+      if (account) {
+        tzwitter.getCollectedTweets(account.publicKeyHash).then(setCollecting);
+      }
+    };
+    checkCollecting();
+    const i = setInterval(checkCollecting, 2000);
+    return () => {
+      clearInterval(i);
+    };
+  }, [account, tzwitter]);
+
   // Menu entries
   // Entries that need a connected user will be removed
   const menu = [
@@ -48,16 +62,16 @@ const Index = () => {
       link: '/',
       text: 'Home',
       icon: '/home.svg',
-      connected: false,
+      present: true,
     },
     {
       id: 'profile',
       link: '/profile',
       text: 'Profile',
       icon: '/profile.svg',
-      connected: true,
+      present: !!account,
     },
-  ].filter(({ connected }) => (connected && !account ? false : true));
+  ].filter(({ present }) => present);
 
   const router = createBrowserRouter([
     {
