@@ -27,7 +27,7 @@ cp kernel/target/wasm32-unknown-unknown/release/tzwitter_kernel.wasm ./rollup/ke
 wasm-strip ./rollup/kernel.wasm
 
 # Split it 
-KERNEL=$(xxd -ps -c 0 rollup/kernel.wasm | tr -d '\n')
+smart-rollup-installer get-reveal-installer --upgrade-to rollup/kernel.wasm --output rollup/installer.hex --preimages-dir rollup/wasm_2_0_0
 
 # Setup the DAC
 mkdir -p rollup/wasm_2_0_0
@@ -35,14 +35,6 @@ mkdir -p rollup/wasm_2_0_0
 # Copy the kernel in the rollup directory
 mkdir -p rollup
 cp kernel/target/wasm32-unknown-unknown/release/tzwitter_kernel.wasm ./rollup/kernel.wasm
-
-# Reducing the size of the kernel with wasm-strip (optional)
-wasm-strip ./rollup/kernel.wasm
-
-# Using the smart-rollup-installer
-# It will generate the installer.hex
-# And split the kernel
-smart-rollup-installer get-reveal-installer --upgrade-to rollup/kernel.wasm --output rollup/installer.hex --preimages-dir rollup/wasm_2_0_0
 
 # Save the bytes of the kernel as a variable
 KERNEL_INSTALLER=$(cat rollup/installer.hex)
