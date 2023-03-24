@@ -46,6 +46,13 @@ fn tweet_likes_path(tweet_id: &u64) -> Result<OwnedPath> {
     tweet_field_path(tweet_id, "/likes")
 }
 
+/// Path to know if user has collected the tweet
+/// The stored value is the block level
+/// /tweets/{id}/collected_hash
+fn tweet_collected_block_path(tweet_id: &u64) -> Result<OwnedPath> {
+    tweet_field_path(tweet_id, "/collected_hash")
+}
+
 /// Compute the paths for the different fields of an account
 ///
 /// The field_path should start with slash
@@ -67,6 +74,11 @@ fn nonce_path(public_key_hash: &PublicKeyHash) -> Result<OwnedPath> {
 /// Compute the path to the liked tweet
 fn account_likes_path(public_key_hash: &PublicKeyHash, tweet_id: &u64) -> Result<OwnedPath> {
     account_field_path(public_key_hash, &format!("/likes/{}", tweet_id))
+}
+
+/// Compute the path of the being collected tweets
+fn account_collecting_path(public_key_hash: &PublicKeyHash, tweet_id: &u64) -> Result<OwnedPath> {
+    account_field_path(public_key_hash, &format!("/collecting/{}", tweet_id))
 }
 
 /// Path to keep track of owned tweets
@@ -364,4 +376,39 @@ pub fn store_receipt<'a, Host: RawRollupCore + Runtime>(
     let () = store_bool(host, &success_path, receipt.success())?;
 
     Ok(receipt)
+}
+
+/// Returns Ok if the tweet is not collected
+pub fn is_not_collected<Host: RawRollupCore + Runtime>(
+    host: &mut Host,
+    tweet_id: &u64,
+) -> Result<()> {
+    let tweet_collected_block_path = tweet_collected_block_path(tweet_id)?;
+    let is_present = exists(host, &tweet_collected_block_path)?;
+
+    match is_present {
+        true => Err(Error::TweetAlreadyCollected),
+        false => Ok(()),
+    }
+}
+
+/// Set the block when the tweet has been collected
+pub fn set_collected_block<Host: RawRollupCore + Runtime>(
+    host: &mut Host,
+    tweet_id: &u64,
+    previous_block: &str,
+) -> Result<()> {
+    let tweet_collected_block_path = tweet_collected_block_path(tweet_id)?;
+    let _ = store_string(host, &tweet_collected_block_path, &previous_block)?;
+    Ok(())
+}
+
+/// Indicates that a tweet is beeing collected by the given user
+pub fn add_collecting_tweet_to_account<Host: RawRollupCore + Runtime>(
+    host: &mut Host,
+    public_key_hash: &PublicKeyHash,
+    tweet_id: &u64,
+) -> Result<()> {
+    let account_collecting_path = account_collecting_path(public_key_hash, tweet_id)?;
+    store_flag(host, &account_collecting_path)
 }

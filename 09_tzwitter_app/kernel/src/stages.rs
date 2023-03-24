@@ -1,5 +1,5 @@
 use crate::{
-    constants::MAGIC_BYTE,
+    constants::{L1_TOKEN_CONTRACT_ADDRESS, L1_TOKEN_CONTRACT_ENTRYPOINT, MAGIC_BYTE},
     core::{
         account::Account,
         message::{Content, Inner, PostTweet, Transfer},
@@ -7,17 +7,22 @@ use crate::{
         tweet::Tweet,
     },
     storage::{
-        self, add_owned_tweet_to_account, add_written_tweet_to_account, increment_tweet_counter,
-        is_liked, is_owner, read_tweet, set_like_flag, store_tweet,
+        self, add_collecting_tweet_to_account, add_owned_tweet_to_account,
+        add_written_tweet_to_account, increment_tweet_counter, is_liked, is_not_collected,
+        is_owner, read_tweet, set_collected_block, set_like_flag, store_tweet,
     },
 };
 use host::{
     rollup_core::{RawRollupCore, MAX_INPUT_MESSAGE_SIZE},
     runtime::Runtime,
 };
+use num_bigint::ToBigInt;
+use tezos_data_encoding::{enc::BinWriter, types::Zarith};
 
 use crate::core::error::*;
 use crate::core::message::Message;
+use tezos_rollup_encoding::{contract::Contract, inbox::InboxMessage, michelson::*};
+use tezos_rollup_encoding::{entrypoint::Entrypoint, outbox::*};
 
 /// Read a message from the inbox
 ///
@@ -43,6 +48,41 @@ pub fn read_input<Host: RawRollupCore>(
                 _ => Err(ReadInputError::NotATzwitterMessage),
             }
         }
+    }
+}
+
+/// Returns the hash of the previous block
+/// /!\ /!\ This function should be call one time BEFORE the read_input function (see above)
+/// Because it will read the first 2 messages of the inbox
+/// TODO: how to have the current level of the block?
+/// It should be better if this function returns the current level of the block
+pub fn get_previous_block_hash<Host: RawRollupCore + Runtime>(host: &mut Host) -> Result<String> {
+    // It ignores the StartOfLevel
+    let _ = host
+        .read_input(MAX_INPUT_MESSAGE_SIZE)
+        .map_err(|err| Error::Runtime(err))?;
+
+    // It reads the InfoPerLevel
+    let input = host
+        .read_input(MAX_INPUT_MESSAGE_SIZE)
+        .map_err(|err| Error::Runtime(err))?;
+
+    // And then extract the precessor hash as a string (which not the best type)
+
+    let input = input.ok_or(Error::NotInfoPerLevelMsg)?;
+    let data = input.as_ref();
+    let msg = InboxMessage::<MichelsonUnit>::parse(data)
+        .map_err(|_| Error::NotInfoPerLevelMsg)?
+        .1;
+
+    match msg {
+        InboxMessage::External(_) => Err(Error::NotInfoPerLevelMsg),
+        InboxMessage::Internal(msg) => match msg {
+            tezos_rollup_encoding::inbox::InternalInboxMessage::InfoPerLevel(info) => {
+                Ok(info.predecessor.to_base58_check())
+            }
+            _ => Err(Error::NotInfoPerLevelMsg),
+        },
     }
 }
 
@@ -127,5 +167,76 @@ pub fn transfer_tweet<Host: RawRollupCore + Runtime>(
     } = transfer;
     let () = is_owner(host, &account.public_key_hash, tweet_id)?;
     let () = storage::transfer(host, &account.public_key_hash, tweet_id, destination)?;
+    Ok(())
+}
+
+/// Withdraw the tweet to layer 1
+pub fn withdraw_tweet<Host: RawRollupCore + Runtime>(
+    host: &mut Host,
+    previous_hash: &str,
+    account: &Account,
+    tweet_id: &u64,
+) -> Result<()> {
+    let () = is_owner(host, &account.public_key_hash, tweet_id)?;
+    let () = is_not_collected(host, tweet_id)?;
+
+    let tweet = read_tweet(host, tweet_id)
+        .map_err(Error::from)?
+        .ok_or(Error::TweetNotFound)?;
+
+    let owner = {
+        let contract = Contract::from_b58check(&account.public_key_hash.to_string())
+            .map_err(|_| Error::FromBase58CheckError)?;
+        MichelsonContract(contract)
+    };
+    let author = {
+        let contract = Contract::from_b58check(&tweet.author.to_string())
+            .map_err(|_| Error::FromBase58CheckError)?;
+        MichelsonContract(contract)
+    };
+    let id = {
+        let id = tweet_id.to_bigint().ok_or(Error::BigIntError)?;
+        let id = Zarith(id);
+        MichelsonInt(id)
+    };
+    // What to do with that?
+    let likes = {
+        let likes = tweet.likes.to_bigint().ok_or(Error::BigIntError)?;
+        let likes = Zarith(likes);
+        MichelsonInt(likes)
+    };
+    let content = MichelsonString(tweet.content);
+
+    let destination = Contract::from_b58check(L1_TOKEN_CONTRACT_ADDRESS)
+        .map_err(|_| Error::FromBase58CheckError)?;
+
+    // (pair %mint
+    //     (pair (nat %id) (address %owner))
+    //     (pair %token (pair (address %author) (string %content)) (nat %likes)))
+
+    let michelson = MichelsonPair(
+        MichelsonPair(id, owner),
+        MichelsonPair(MichelsonPair(author, content), likes),
+    );
+
+    let transaction = OutboxMessageTransaction {
+        parameters: michelson,
+        destination,
+        entrypoint: Entrypoint::try_from(L1_TOKEN_CONTRACT_ENTRYPOINT.to_string())
+            .map_err(Error::from)?,
+    };
+
+    let batch = OutboxMessageTransactionBatch::from(vec![transaction]);
+    let message = OutboxMessage::AtomicTransactionBatch(batch);
+
+    let mut output = Vec::default();
+    let () = message.bin_write(&mut output).unwrap();
+
+    let () = host.write_output(&output).unwrap();
+
+    // Freeze the tweets
+    let () = set_collected_block(host, tweet_id, previous_hash)?;
+    // Indicates that the user is collecting the tweet
+    let () = add_collecting_tweet_to_account(host, &account.public_key_hash, tweet_id)?;
     Ok(())
 }
