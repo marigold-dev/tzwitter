@@ -1,0 +1,73 @@
+
+type token = {
+  author: address,
+  content: string,
+  likes: nat
+};
+
+type storage = {
+  ledger: big_map<nat, address>,
+  tokens: big_map<nat, token>,
+};
+
+type mint_parameter = {
+  id: nat, 
+  owner: bytes,
+  token: token,
+};
+
+type parameter =
+| ["Transfer", unit]
+| ["BalanceOf", unit]
+| ["UpdateOperators", unit]
+| ["Mint", mint_parameter];
+
+/* Two entrypoints */
+
+const todo = () => failwith("to implemented");
+
+const initial_storage : storage = {
+  ledger: Big_map.empty,
+  tokens: Big_map.empty
+}
+
+const parameter = Mint({
+  id: 0 as nat,
+  owner: 0x010101,
+  token: {
+    author: "tz3WMqdzXqRWXwyvj5Hp2H7QEepaUuS7vd9K" as address,
+    content: "Hello world",
+    likes: 10 as nat
+  }
+})
+
+const mint = (storage: storage, request: mint_parameter): storage => {
+  let {id, owner, token} = request;
+  let {ledger, tokens} = storage;
+  let owner = Option.value_exn("is not an address", Bytes.unpack(owner));
+  // Assert the token don't exist
+  let is_present =  Big_map.mem(id, tokens);
+  if(is_present) {
+    return failwith("Token already present/withdrawn")
+  }
+  // Add the token to the storage
+  let tokens = Big_map.add(id, token, tokens);
+  // Add an entry to the user
+  let ledger = Big_map.add(id, owner, ledger);
+
+  return {tokens, ledger};
+}
+
+
+const main = (action: parameter, store: storage) : [ list<operation> , storage ] => {
+ return [
+   list([]),    // No operations
+   (match (action, {
+    Transfer: _ => todo(),
+    BalanceOf: _ => todo(),
+    UpdateOperators: _ => todo(),
+    Mint: request  => mint(store, request)
+    }))
+  ]
+};
+
