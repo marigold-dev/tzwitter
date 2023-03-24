@@ -181,7 +181,7 @@ checksum = "382ce8820a5bb815055d3553a610e8cb542b2d767bbacea99038afda96cd760d"
 [[package]]
 name = "debug"
 version = "0.1.0"
-source = "git+https://gitlab.com/tezos/kernel/#a8b68de05a3c89aa7770f8cf02eb689fde4303f1"
+source = "git+https://gitlab.com/tezos/kernel/?rev=454e3016ea12565af37c00ee4723ad1d0505af08#454e3016ea12565af37c00ee4723ad1d0505af08"
 dependencies = [
  "host",
 ]
@@ -329,7 +329,7 @@ dependencies = [
 [[package]]
 name = "host"
 version = "0.1.0"
-source = "git+https://gitlab.com/tezos/kernel/#a8b68de05a3c89aa7770f8cf02eb689fde4303f1"
+source = "git+https://gitlab.com/tezos/kernel/?rev=454e3016ea12565af37c00ee4723ad1d0505af08#454e3016ea12565af37c00ee4723ad1d0505af08"
 dependencies = [
  "crypto",
  "tezos_smart_rollup_core",
@@ -344,7 +344,7 @@ checksum = "453ad9f582a441959e5f0d088b02ce04cfe8d51a8eaf077f12ac6d3e94164ca6"
 [[package]]
 name = "kernel"
 version = "0.1.0"
-source = "git+https://gitlab.com/tezos/kernel/#a8b68de05a3c89aa7770f8cf02eb689fde4303f1"
+source = "git+https://gitlab.com/tezos/kernel/?rev=454e3016ea12565af37c00ee4723ad1d0505af08#454e3016ea12565af37c00ee4723ad1d0505af08"
 dependencies = [
  "debug",
  "dlmalloc",
@@ -431,7 +431,7 @@ checksum = "0ee1c47aaa256ecabcaea351eae4a9b01ef39ed810004e298d2511ed284b1525"
 [[package]]
 name = "mock_host"
 version = "0.1.0"
-source = "git+https://gitlab.com/tezos/kernel/#a8b68de05a3c89aa7770f8cf02eb689fde4303f1"
+source = "git+https://gitlab.com/tezos/kernel/?rev=454e3016ea12565af37c00ee4723ad1d0505af08#454e3016ea12565af37c00ee4723ad1d0505af08"
 dependencies = [
  "debug",
  "host",
@@ -442,11 +442,11 @@ dependencies = [
 [[package]]
 name = "mock_runtime"
 version = "0.1.0"
-source = "git+https://gitlab.com/tezos/kernel/#a8b68de05a3c89aa7770f8cf02eb689fde4303f1"
+source = "git+https://gitlab.com/tezos/kernel/?rev=454e3016ea12565af37c00ee4723ad1d0505af08#454e3016ea12565af37c00ee4723ad1d0505af08"
 dependencies = [
  "crypto",
  "host",
- "tezos_rollup_encoding",
+ "tezos_rollup_encoding 0.1.0 (git+https://gitlab.com/tezos/kernel/?rev=454e3016ea12565af37c00ee4723ad1d0505af08)",
 ]
 
 [[package]]
@@ -529,7 +529,7 @@ dependencies = [
 [[package]]
 name = "panic_handler"
 version = "0.1.0"
-source = "git+https://gitlab.com/tezos/kernel/#a8b68de05a3c89aa7770f8cf02eb689fde4303f1"
+source = "git+https://gitlab.com/tezos/kernel/?rev=454e3016ea12565af37c00ee4723ad1d0505af08#454e3016ea12565af37c00ee4723ad1d0505af08"
 dependencies = [
  "debug",
  "host",
@@ -778,6 +778,60 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 
 [[package]]
+name = "tezos_crypto_rs"
+version = "0.4.4"
+source = "git+https://github.com/trilitech/tezedge#9ae1450ceced5a7fc8578b94989a87c7a8683f46"
+dependencies = [
+ "anyhow",
+ "base58",
+ "blst",
+ "byteorder",
+ "cryptoxide",
+ "ed25519-compact",
+ "hex",
+ "libsecp256k1",
+ "num-bigint",
+ "num-traits",
+ "p256",
+ "rand 0.7.3",
+ "serde",
+ "strum",
+ "strum_macros",
+ "thiserror",
+ "zeroize",
+]
+
+[[package]]
+name = "tezos_data_encoding"
+version = "0.4.4"
+source = "git+https://github.com/trilitech/tezedge#9ae1450ceced5a7fc8578b94989a87c7a8683f46"
+dependencies = [
+ "bit-vec",
+ "hex",
+ "lazy_static",
+ "nom",
+ "num-bigint",
+ "num-traits",
+ "serde",
+ "tezos_crypto_rs",
+ "tezos_data_encoding_derive",
+ "thiserror",
+]
+
+[[package]]
+name = "tezos_data_encoding_derive"
+version = "0.4.4"
+source = "git+https://github.com/trilitech/tezedge#9ae1450ceced5a7fc8578b94989a87c7a8683f46"
+dependencies = [
+ "lazy_static",
+ "once_cell",
+ "parse-display",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "tezos_encoding"
 version = "3.1.1"
 source = "git+https://github.com/trilitech/tezedge.git?branch=master#b8183d3954a0818b839fc53f04498a9535298cdb"
@@ -810,7 +864,22 @@ dependencies = [
 [[package]]
 name = "tezos_rollup_encoding"
 version = "0.1.0"
-source = "git+https://gitlab.com/tezos/kernel/#a8b68de05a3c89aa7770f8cf02eb689fde4303f1"
+dependencies = [
+ "hex",
+ "nom",
+ "num-bigint",
+ "num-traits",
+ "tezos_crypto_rs",
+ "tezos_data_encoding",
+ "tezos_data_encoding_derive",
+ "thiserror",
+ "time",
+]
+
+[[package]]
+name = "tezos_rollup_encoding"
+version = "0.1.0"
+source = "git+https://gitlab.com/tezos/kernel/?rev=454e3016ea12565af37c00ee4723ad1d0505af08#454e3016ea12565af37c00ee4723ad1d0505af08"
 dependencies = [
  "crypto",
  "host",
@@ -826,7 +895,7 @@ dependencies = [
 [[package]]
 name = "tezos_smart_rollup_core"
 version = "0.1.0"
-source = "git+https://gitlab.com/tezos/tezos.git#e5db8c8a84f44ab8665ad04fae4599ca2021438d"
+source = "git+https://gitlab.com/tezos/kernel/?rev=454e3016ea12565af37c00ee4723ad1d0505af08#454e3016ea12565af37c00ee4723ad1d0505af08"
 
 [[package]]
 name = "thiserror"
@@ -902,8 +971,11 @@ dependencies = [
  "kernel",
  "mock_host",
  "mock_runtime",
+ "num-bigint",
  "serde",
  "serde-json-wasm",
+ "tezos_data_encoding",
+ "tezos_rollup_encoding 0.1.0",
 ]
 
 [[package]]

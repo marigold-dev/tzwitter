@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2022-2023 TriliTech <contact@trili.tech>
+# SPDX-FileCopyrightText: 2023 Marigold <contact@marigold.dev
+#
+# SPDX-License-Identifier: MIT
+
+[package]
+name = "tezos_rollup_encoding"
+version = "0.1.0"
+edition = "2021"
+authors = ["TriliTech <contact@trili.tech>"]
+
+[dependencies]
+tezos_data_encoding = { git = "https://github.com/trilitech/tezedge", optional = true }
+tezos_data_encoding_derive = { git = "https://github.com/trilitech/tezedge" }
+
+nom = "6.1"
+tezos_crypto_rs = { git = "https://github.com/trilitech/tezedge", default-features = false, optional = true }
+
+num-bigint = { version = "0.3", optional = true }
+num-traits = { version = "0.2.8", optional = true }
+time = { version = "0.3", features = [
+    "formatting",
+    "parsing",
+], optional = true }
+proptest = { version = "1.0", optional = true }
+hex = { version = "0.4.3", optional = true }
+thiserror = { version = "1.0", optional = true }
+
+[dev-dependencies]
+mock_runtime = { path = "../mock_runtime" }
+
+[features]
+default = ["alloc", "tezos-encoding"]
+testing = ["crypto", "num-bigint", "num-traits", "proptest"]
+crypto = ["tezos_crypto_rs"]
+alloc = ["crypto", "thiserror", "hex", "num-traits", "num-bigint"]
+tezos-encoding = ["tezos_data_encoding", "time"]
