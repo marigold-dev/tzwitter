@@ -8,17 +8,22 @@ crate-type = ["cdylib", "lib"]
 
 [dependencies]
 # Let's use the last version of the SDK, todo: fix the version if it's an issue
-host = { git = "https://gitlab.com/tezos/kernel/" } 
-debug = { git = "https://gitlab.com/tezos/kernel/" }
-kernel = {git = "https://gitlab.com/tezos/kernel/"}
-mock_runtime = { git = "https://gitlab.com/tezos/kernel/" }
-mock_host = { git = "https://gitlab.com/tezos/kernel/" }
+host = { git = "https://gitlab.com/tezos/kernel/", rev="454e3016ea12565af37c00ee4723ad1d0505af08" }
+debug = { git = "https://gitlab.com/tezos/kernel/", rev="454e3016ea12565af37c00ee4723ad1d0505af08" }
+kernel = {git = "https://gitlab.com/tezos/kernel/", rev ="454e3016ea12565af37c00ee4723ad1d0505af08"}
+mock_runtime = { git = "https://gitlab.com/tezos/kernel/", rev="454e3016ea12565af37c00ee4723ad1d0505af08" }
+mock_host = { git = "https://gitlab.com/tezos/kernel/", rev="454e3016ea12565af37c00ee4723ad1d0505af08" }
 
 # To hash everything
 crypto = { git = "https://github.com/trilitech/tezedge.git", branch = "master", default-features = false }
 ed25519-compact = { version ="2.0", default-features = false }
 serde = "1.0.152"
 serde-json-wasm = "0.5.0"
+
+tezos_rollup_encoding = { path = "../tezos_rollup_encoding"}
+tezos_data_encoding = { git = "https://github.com/trilitech/tezedge" }
+
+num-bigint = "0.3"
 
 [dev-dependencies]
 hex = "0.4.3"
